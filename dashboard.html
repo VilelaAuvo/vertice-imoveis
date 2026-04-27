@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vértice Imóveis — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#C9973A; --gold-light:#E8C070; --black:#080808;
+      --surface:#111111; --surface2:#181818; --surface3:#141414;
+      --border:rgba(201,151,58,0.15); --border-h:rgba(201,151,58,0.35);
+      --text:#E8E0D0; --text-muted:#7A7060;
+      --green:#5a9a20; --green-bg:rgba(90,154,32,0.12);
+      --amber:#e8a030; --amber-bg:rgba(232,160,48,0.12);
+      --red:#e05050; --red-bg:rgba(224,80,80,0.12);
+      --blue:#4a9edd; --blue-bg:rgba(74,158,221,0.12);
+      --sidebar-w:200px;
+    }
+    html,body{height:100%;background:var(--black);font-family:'Jost',sans-serif;color:var(--text);}
+    body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(201,151,58,0.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(201,151,58,0.03) 60px);pointer-events:none;z-index:0;}
+    .topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--surface);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100;}
+    .topbar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+    .logo-area{display:flex;align-items:center;gap:12px;}
+    .logo-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;letter-spacing:4px;color:#fff;}
+    .logo-sub{font-size:8px;font-weight:300;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-top:2px;}
+    .topbar-right{display:flex;align-items:center;gap:16px;}
+    .user-name{font-size:13px;color:var(--text);}
+    .user-role{font-size:10px;font-weight:300;letter-spacing:1px;color:var(--text-muted);}
+    .avatar{width:34px;height:34px;border-radius:50%;background:rgba(201,151,58,0.15);border:0.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--gold);}
+    .btn-sair{font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;background:none;border:0.5px solid var(--border);border-radius:2px;padding:6px 12px;cursor:pointer;transition:all 0.2s;}
+    .btn-sair:hover{color:var(--gold);border-color:var(--border-h);}
+    .sidebar{position:fixed;top:56px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:0.5px solid var(--border);padding:24px 0;z-index:90;overflow-y:auto;}
+    .nav-section{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;padding:0 20px;margin:20px 0 8px;}
+    .nav-section:first-child{margin-top:0;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all 0.2s;border-left:2px solid transparent;text-decoration:none;}
+    .nav-item:hover{color:var(--text);background:rgba(201,151,58,0.05);}
+    .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,151,58,0.08);}
+    .main{margin-left:var(--sidebar-w);margin-top:56px;padding:28px;position:relative;z-index:1;}
+    .page-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:#fff;letter-spacing:2px;margin-bottom:4px;}
+    .page-subtitle{font-size:11px;font-weight:300;letter-spacing:1px;color:var(--text-muted);margin-bottom:28px;}
+    .metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;}
+    .metric-card{background:var(--surface3);border:0.5px solid var(--border);border-radius:4px;padding:20px;}
+    .metric-label{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px;}
+    .metric-value{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:500;line-height:1;}
+    .metric-value.gold{color:var(--gold);}
+    .metric-value.white{color:#fff;}
+    .metric-value.green{color:var(--green);}
+    .metric-caption{font-size:10px;color:var(--text-muted);margin-top:6px;font-weight:300;}
+    .content-grid{display:grid;grid-template-columns:1fr 300px;gap:16px;}
+    .card{background:var(--surface3);border:0.5px solid var(--border);border-radius:4px;padding:20px;margin-bottom:16px;}
+    .card:last-child{margin-bottom:0;}
+    .card-title{font-size:10px;font-weight:500;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:16px;}
+    table{width:100%;border-collapse:collapse;}
+    th{font-size:9px;font-weight:500;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;text-align:left;padding:0 10px 10px;border-bottom:0.5px solid var(--border);}
+    td{font-size:12px;font-weight:300;color:var(--text);padding:11px 10px;border-bottom:0.5px solid rgba(201,151,58,0.06);}
+    tr:last-child td{border-bottom:none;}
+    .badge{display:inline-block;font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:2px;}
+    .badge-green{background:var(--green-bg);color:var(--green);}
+    .badge-amber{background:var(--amber-bg);color:var(--amber);}
+    .badge-red{background:var(--red-bg);color:var(--red);}
+    .alert{border-radius:2px;padding:12px 14px;font-size:12px;font-weight:300;line-height:1.5;margin-bottom:8px;border-left:2px solid;}
+    .alert-amber{background:var(--amber-bg);border-color:var(--amber);color:var(--amber);}
+    .alert-green{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+    .corretor-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid rgba(201,151,58,0.06);}
+    .corretor-item:last-child{border-bottom:none;}
+    .corretor-avatar{width:32px;height:32px;border-radius:50%;background:rgba(201,151,58,0.1);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:var(--gold);flex-shrink:0;}
+    .corretor-info{flex:1;}
+    .corretor-name{font-size:12px;color:var(--text);}
+    .corretor-sub{font-size:10px;color:var(--text-muted);margin-top:2px;}
+    .emp-item{margin-bottom:14px;}
+    .emp-item:last-child{margin-bottom:0;}
+    .emp-header{display:flex;justify-content:space-between;margin-bottom:6px;}
+    .emp-name{font-size:12px;color:var(--text);}
+    .emp-pct{font-size:11px;color:var(--gold);}
+    .emp-bar-wrap{height:3px;background:rgba(255,255,255,0.05);border-radius:2px;}
+    .emp-bar{height:3px;border-radius:2px;background:var(--gold);transition:width 1s ease;}
+    .emp-caption{font-size:10px;color:var(--text-muted);margin-top:4px;}
+    .muted{color:var(--text-muted);font-size:12px;font-style:italic;}
+    @media(max-width:900px){.content-grid{grid-template-columns:1fr;}.sidebar{display:none;}.main{margin-left:0;}}
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo-area">
+    <svg width="32" height="36" viewBox="0 0 60 68" fill="none">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8B6010"/><stop offset="45%" stop-color="#E8C070"/><stop offset="100%" stop-color="#8B6010"/></linearGradient>
+        <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E8C070"/><stop offset="100%" stop-color="#8B6010"/></linearGradient>
+      </defs>
+      <rect x="18" y="10" width="9" height="32" rx="1" fill="url(#g2)" opacity="0.85"/>
+      <rect x="31" y="2" width="9" height="40" rx="1" fill="url(#g2)"/>
+      <polygon points="0,20 10,20 30,58 50,20 60,20 30,68" fill="url(#g1)"/>
+    </svg>
+    <div><div class="logo-name">VÉRTICE</div><div class="logo-sub">Imóveis</div></div>
+  </div>
+  <div class="topbar-right">
+    <div><div class="user-name" id="user-name">—</div><div class="user-role">Vértice Imóveis</div></div>
+    <div class="avatar" id="user-avatar">—</div>
+    <button class="btn-sair" onclick="sair()">Sair</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <div class="nav-section">Menu</div>
+  <a class="nav-item active" href="dashboard.html">▪ Dashboard</a>
+  <a class="nav-item" href="clientes.html">▪ Clientes</a>
+  <a class="nav-item" href="empreendimentos.html">▪ Empreendimentos</a>
+  <a class="nav-item" href="vendas.html">▪ Vendas</a>
+  <div class="nav-section">Gestão</div>
+  <a class="nav-item" href="financeiro.html">▪ Financeiro</a>
+  <a class="nav-item" href="usuarios.html" id="menu-usuarios">▪ Usuários</a>
+</nav>
+
+<main class="main">
+  <div class="page-title">Dashboard</div>
+  <div class="page-subtitle" id="data-hoje">—</div>
+
+  <div class="metrics-grid">
+    <div class="metric-card"><div class="metric-label">Clientes cadastrados</div><div class="metric-value white" id="m-clientes">—</div><div class="metric-caption">Total no sistema</div></div>
+    <div class="metric-card"><div class="metric-label">Vendas este mês</div><div class="metric-value gold" id="m-vendas">—</div><div class="metric-caption">Vendas fechadas</div></div>
+    <div class="metric-card"><div class="metric-label">Faturamento (mês)</div><div class="metric-value green" id="m-faturamento">—</div><div class="metric-caption">Receita do mês</div></div>
+    <div class="metric-card"><div class="metric-label">Propostas em aberto</div><div class="metric-value white" id="m-propostas">—</div><div class="metric-caption">Aguardando fechamento</div></div>
+  </div>
+
+  <div class="content-grid">
+    <div>
+      <div class="card">
+        <div class="card-title">Últimas vendas</div>
+        <table>
+          <thead><tr><th>Cliente</th><th>Empreendimento</th><th>Unidade</th><th>Valor</th><th>Status</th></tr></thead>
+          <tbody id="tabela-vendas"><tr><td colspan="5" class="muted">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">Vendas por empreendimento</div>
+        <div id="emp-progress"><p class="muted">Carregando...</p></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Alertas</div>
+        <div id="alertas"><p class="muted">Carregando...</p></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Corretores do mês</div>
+        <div id="corretores"><p class="muted">Carregando...</p></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const SUPABASE_URL = 'https://hjmnamdetxltxygyvkja.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqbW5hbWRldHhsdHh5Z3l2a2phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTExMzgsImV4cCI6MjA5Mjg4NzEzOH0.41XQTIDzjO02L-obfgaKWdJzcTpL6zxPNJfZo3hgdnQ';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const sessao = sessionStorage.getItem('vertice_usuario');
+  if (!sessao) window.location.href = 'index.html';
+  const usuario = JSON.parse(sessao);
+
+  document.getElementById('user-name').textContent   = usuario.nome;
+  document.getElementById('user-avatar').textContent = usuario.nome.substring(0,2).toUpperCase();
+  if (usuario.perfil !== 'Administrador') {
+    const m = document.getElementById('menu-usuarios');
+    if (m) m.style.display = 'none';
+  }
+
+  const hoje = new Date();
+  document.getElementById('data-hoje').textContent =
+    hoje.toLocaleDateString('pt-BR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  function sair() {
+    if (confirm('Deseja realmente sair do sistema?')) {
+      sessionStorage.removeItem('vertice_usuario');
+      window.location.href = 'index.html';
+    }
+  }
+
+  const badgeMap = { 'Fechada':'badge-green', 'Em andamento':'badge-amber', 'Cancelada':'badge-red' };
+
+  async function carregarDados() {
+    try {
+      const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString();
+
+      const [
+        { count: totalClientes },
+        { data: vendasMes },
+        { count: propostas },
+        { data: ultimasVendas },
+        { data: emps },
+        { data: vendasCorr }
+      ] = await Promise.all([
+        db.from('clientes').select('*', { count:'exact', head:true }),
+        db.from('vendas').select('*').eq('status','Fechada').gte('criado_em', inicioMes),
+        db.from('vendas').select('*', { count:'exact', head:true }).eq('status','Em andamento'),
+        db.from('vendas').select('*').order('criado_em', { ascending:false }).limit(5),
+        db.from('empreendimentos').select('*').order('criado_em'),
+        db.from('vendas').select('corretor,valor').eq('status','Fechada').gte('criado_em', inicioMes)
+      ]);
+
+      // Métricas
+      document.getElementById('m-clientes').textContent  = totalClientes ?? 0;
+      document.getElementById('m-vendas').textContent    = vendasMes?.length ?? 0;
+      document.getElementById('m-propostas').textContent = propostas ?? 0;
+      const fat = vendasMes?.reduce((s,v) => s + (v.valor||0), 0) ?? 0;
+      document.getElementById('m-faturamento').textContent =
+        fat >= 1000000 ? 'R$ '+(fat/1000000).toFixed(1)+'M' :
+        fat >= 1000    ? 'R$ '+(fat/1000).toFixed(0)+'k' :
+        'R$ '+fat.toLocaleString('pt-BR');
+
+      // Tabela vendas
+      const tbody = document.getElementById('tabela-vendas');
+      tbody.innerHTML = !ultimasVendas?.length
+        ? `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">Nenhuma venda cadastrada ainda.</td></tr>`
+        : ultimasVendas.map(v => `
+            <tr>
+              <td style="font-weight:400">${v.cliente_nome||'—'}</td>
+              <td>${v.empreendimento_nome||'—'}</td>
+              <td>${v.unidade||'—'}</td>
+              <td>R$ ${(v.valor||0).toLocaleString('pt-BR')}</td>
+              <td><span class="badge ${badgeMap[v.status]||'badge-amber'}">${v.status}</span></td>
+            </tr>`).join('');
+
+      // Empreendimentos
+      const empDiv = document.getElementById('emp-progress');
+      if (!emps?.length) {
+        empDiv.innerHTML = `<p class="muted">Nenhum empreendimento cadastrado.</p>`;
+      } else {
+        const { data: todasVendas } = await db.from('vendas').select('empreendimento_nome').eq('status','Fechada');
+        empDiv.innerHTML = emps.map(e => {
+          const qtd  = (todasVendas||[]).filter(v => v.empreendimento_nome === e.nome).length;
+          const pct  = e.total_unidades > 0 ? Math.min(Math.round((qtd/e.total_unidades)*100), 100) : 0;
+          return `
+          <div class="emp-item">
+            <div class="emp-header"><span class="emp-name">${e.nome}</span><span class="emp-pct">${pct}%</span></div>
+            <div class="emp-bar-wrap"><div class="emp-bar" style="width:${pct}%"></div></div>
+            <div class="emp-caption">${qtd} de ${e.total_unidades} unidades vendidas — desc. máx: ${e.desconto_maximo}%</div>
+          </div>`;
+        }).join('');
+      }
+
+      // Alertas
+      const alertas = [];
+      if ((propostas??0) > 0) alertas.push({ tipo:'amber', msg:`${propostas} proposta(s) em andamento aguardando fechamento` });
+      (emps||[]).filter(e => e.status === 'Em vendas').forEach(e =>
+        alertas.push({ tipo:'green', msg:`${e.nome} em vendas — ${e.total_unidades} unidades no total` })
+      );
+      document.getElementById('alertas').innerHTML = alertas.length
+        ? alertas.map(a => `<div class="alert alert-${a.tipo}">${a.msg}</div>`).join('')
+        : `<p class="muted">Nenhum alerta no momento.</p>`;
+
+      // Corretores
+      const corrMap = {};
+      (vendasCorr||[]).forEach(v => {
+        if (!v.corretor) return;
+        if (!corrMap[v.corretor]) corrMap[v.corretor] = { qtd:0, total:0 };
+        corrMap[v.corretor].qtd++;
+        corrMap[v.corretor].total += v.valor||0;
+      });
+      const corrList = Object.entries(corrMap).sort((a,b) => b[1].total - a[1].total);
+      const maxT = corrList[0]?.[1].total || 1;
+      document.getElementById('corretores').innerHTML = corrList.length
+        ? corrList.map(([nome,d]) => `
+          <div class="corretor-item">
+            <div class="corretor-avatar">${nome.substring(0,2).toUpperCase()}</div>
+            <div class="corretor-info">
+              <div class="corretor-name">${nome}</div>
+              <div class="corretor-sub">${d.qtd} venda(s) fechada(s)</div>
+              <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;margin-top:4px">
+                <div style="height:3px;border-radius:2px;background:var(--gold);width:${Math.round((d.total/maxT)*100)}%"></div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--gold)">R$ ${(d.total/1000).toFixed(0)}k</div>
+          </div>`).join('')
+        : `<p class="muted">Nenhuma venda fechada este mês.</p>`;
+
+    } catch(err) {
+      console.error('Erro ao carregar dados:', err);
+    }
+  }
+
+  carregarDados();
+</script>
+</body>
+</html>

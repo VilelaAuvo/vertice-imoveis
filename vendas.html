@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vértice Imóveis — Vendas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--gold:#C9973A;--gold-light:#E8C070;--black:#080808;--surface:#111111;--surface2:#181818;--surface3:#141414;--border:rgba(201,151,58,0.15);--border-h:rgba(201,151,58,0.35);--text:#E8E0D0;--text-muted:#7A7060;--green:#5a9a20;--green-bg:rgba(90,154,32,0.12);--amber:#e8a030;--amber-bg:rgba(232,160,48,0.12);--red:#e05050;--red-bg:rgba(224,80,80,0.12);--blue:#4a9edd;--blue-bg:rgba(74,158,221,0.12);--sidebar-w:200px;}
+    html,body{height:100%;background:var(--black);font-family:'Jost',sans-serif;color:var(--text);}
+    body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(201,151,58,0.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(201,151,58,0.03) 60px);pointer-events:none;z-index:0;}
+    .topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--surface);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100;}
+    .topbar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+    .logo-area{display:flex;align-items:center;gap:12px;}
+    .logo-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;letter-spacing:4px;color:#fff;}
+    .logo-sub{font-size:8px;font-weight:300;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-top:2px;}
+    .topbar-right{display:flex;align-items:center;gap:16px;}
+    .user-name{font-size:13px;color:var(--text);}.user-role{font-size:10px;color:var(--text-muted);}
+    .avatar{width:34px;height:34px;border-radius:50%;background:rgba(201,151,58,0.15);border:0.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--gold);}
+    .btn-sair{font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;background:none;border:0.5px solid var(--border);border-radius:2px;padding:6px 12px;cursor:pointer;}
+    .btn-sair:hover{color:var(--gold);border-color:var(--border-h);}
+    .sidebar{position:fixed;top:56px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:0.5px solid var(--border);padding:24px 0;z-index:90;overflow-y:auto;}
+    .nav-section{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;padding:0 20px;margin:20px 0 8px;}
+    .nav-section:first-child{margin-top:0;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all 0.2s;border-left:2px solid transparent;text-decoration:none;}
+    .nav-item:hover{color:var(--text);background:rgba(201,151,58,0.05);}
+    .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,151,58,0.08);}
+    .main{margin-left:var(--sidebar-w);margin-top:56px;padding:28px;position:relative;z-index:1;}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .page-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:#fff;letter-spacing:2px;}
+    .btn-novo{background:var(--gold);color:#080808;border:none;border-radius:2px;padding:10px 20px;font-family:'Jost',sans-serif;font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;cursor:pointer;}
+    .btn-novo:hover{background:var(--gold-light);}
+    .filtros{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+    .chip{font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:2px;border:0.5px solid var(--border);color:var(--text-muted);cursor:pointer;transition:all 0.2s;background:none;font-family:'Jost',sans-serif;}
+    .chip.active{background:var(--gold);color:#080808;border-color:var(--gold);}
+    .card{background:var(--surface3);border:0.5px solid var(--border);border-radius:4px;overflow:hidden;}
+    table{width:100%;border-collapse:collapse;}
+    th{font-size:9px;font-weight:500;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;text-align:left;padding:14px 16px;border-bottom:0.5px solid var(--border);background:var(--surface2);}
+    td{font-size:12px;font-weight:300;color:var(--text);padding:13px 16px;border-bottom:0.5px solid rgba(201,151,58,0.06);}
+    tr:last-child td{border-bottom:none;}
+    tbody tr{cursor:pointer;transition:background 0.15s;}
+    tbody tr:hover td{background:rgba(201,151,58,0.04);}
+    .badge{display:inline-block;font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:2px;}
+    .badge-green{background:var(--green-bg);color:var(--green);}
+    .badge-amber{background:var(--amber-bg);color:var(--amber);}
+    .badge-red{background:var(--red-bg);color:var(--red);}
+    .table-footer{padding:12px 16px;font-size:11px;color:var(--text-muted);border-top:0.5px solid var(--border);display:flex;justify-content:space-between;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:center;justify-content:center;padding:24px;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--surface);border:0.5px solid var(--border);border-radius:4px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1;}
+    .modal-title{font-size:13px;font-weight:500;letter-spacing:2px;color:var(--gold);text-transform:uppercase;}
+    .modal-close{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:4px 8px;}
+    .modal-body{padding:24px;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+    .form-row.single{grid-template-columns:1fr;}
+    .form-group{display:flex;flex-direction:column;gap:6px;}
+    .form-label{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--gold);text-transform:uppercase;}
+    .form-input,.form-select,.form-textarea{background:var(--surface2);border:0.5px solid var(--border);border-radius:2px;padding:10px 12px;font-family:'Jost',sans-serif;font-size:13px;font-weight:300;color:var(--text);outline:none;transition:border-color 0.2s;}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--border-h);}
+    .form-input::placeholder,.form-textarea::placeholder{color:var(--text-muted);}
+    .form-textarea{resize:vertical;min-height:64px;}
+    .form-select option{background:var(--surface2);}
+    .form-section{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin:20px 0 14px;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
+    .modal-footer{padding:16px 24px;border-top:0.5px solid var(--border);display:flex;gap:10px;justify-content:space-between;align-items:center;}
+    .btn-cancelar{background:none;border:0.5px solid var(--border);border-radius:2px;padding:10px 20px;font-family:'Jost',sans-serif;font-size:11px;color:var(--text-muted);cursor:pointer;}
+    .btn-salvar{background:var(--gold);border:none;border-radius:2px;padding:10px 24px;font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#080808;cursor:pointer;}
+    .btn-salvar:hover{background:var(--gold-light);}
+    .btn-excluir{background:none;border:0.5px solid var(--red-bg);border-radius:2px;padding:10px 16px;font-family:'Jost',sans-serif;font-size:11px;color:var(--red);cursor:pointer;}
+    .btn-excluir:hover{background:var(--red-bg);}
+    .desc-info{font-size:11px;color:var(--gold);margin-top:4px;}
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:0.5px solid var(--gold);border-radius:4px;padding:14px 20px;font-size:12px;color:var(--gold);z-index:300;display:none;}
+    .muted{color:var(--text-muted);font-size:12px;font-style:italic;padding:24px;text-align:center;}
+    @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.form-row{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo-area">
+    <svg width="32" height="36" viewBox="0 0 60 68" fill="none"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8B6010"/><stop offset="45%" stop-color="#E8C070"/><stop offset="100%" stop-color="#8B6010"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E8C070"/><stop offset="100%" stop-color="#8B6010"/></linearGradient></defs><rect x="18" y="10" width="9" height="32" rx="1" fill="url(#g2)" opacity="0.85"/><rect x="31" y="2" width="9" height="40" rx="1" fill="url(#g2)"/><polygon points="0,20 10,20 30,58 50,20 60,20 30,68" fill="url(#g1)"/></svg>
+    <div><div class="logo-name">VÉRTICE</div><div class="logo-sub">Imóveis</div></div>
+  </div>
+  <div class="topbar-right">
+    <div><div class="user-name" id="user-name">—</div><div class="user-role">Vértice Imóveis</div></div>
+    <div class="avatar" id="user-avatar">—</div>
+    <button class="btn-sair" onclick="sair()">Sair</button>
+  </div>
+</header>
+<nav class="sidebar">
+  <div class="nav-section">Menu</div>
+  <a class="nav-item" href="dashboard.html">▪ Dashboard</a>
+  <a class="nav-item" href="clientes.html">▪ Clientes</a>
+  <a class="nav-item" href="empreendimentos.html">▪ Empreendimentos</a>
+  <a class="nav-item active" href="vendas.html">▪ Vendas</a>
+  <div class="nav-section">Gestão</div>
+  <a class="nav-item" href="financeiro.html">▪ Financeiro</a>
+  <a class="nav-item" href="usuarios.html" id="menu-usuarios">▪ Usuários</a>
+</nav>
+<main class="main">
+  <div class="page-header">
+    <div class="page-title">Vendas / Propostas</div>
+    <button class="btn-novo" onclick="abrirModal()">+ Nova Proposta</button>
+  </div>
+  <div class="filtros">
+    <button class="chip active" onclick="setFiltro('',this)">Todas</button>
+    <button class="chip" onclick="setFiltro('Em andamento',this)">Em andamento</button>
+    <button class="chip" onclick="setFiltro('Fechada',this)">Fechadas</button>
+    <button class="chip" onclick="setFiltro('Cancelada',this)">Canceladas</button>
+  </div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Cliente</th><th>Empreendimento</th><th>Unidade</th><th>Valor</th><th>Desconto</th><th>Corretor</th><th>Status</th></tr></thead>
+      <tbody id="tabela-vendas"><tr><td colspan="7" class="muted">Carregando...</td></tr></tbody>
+    </table>
+    <div class="table-footer"><span id="total-vendas">—</span><span style="color:var(--gold);font-size:11px">Clique para editar</span></div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-titulo">Nova Proposta</div><button class="modal-close" onclick="fecharModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-section">Dados da venda</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Cliente *</label><select class="form-select" id="f-cliente"><option value="">Selecione...</option></select></div>
+        <div class="form-group"><label class="form-label">Empreendimento *</label><select class="form-select" id="f-emp" onchange="atualizarDesconto()"><option value="">Selecione...</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Unidade</label><input class="form-input" id="f-unidade" type="text" placeholder="Ex: Ap. 304"/></div>
+        <div class="form-group"><label class="form-label">Corretor</label><select class="form-select" id="f-corretor"><option value="">Selecione...</option></select></div>
+      </div>
+      <div class="form-section">Valores</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Valor total (R$) *</label><input class="form-input" id="f-valor" type="number" min="0" placeholder="Ex: 380000"/></div>
+        <div class="form-group"><label class="form-label">Desconto aplicado (%)</label><input class="form-input" id="f-desconto" type="number" min="0" max="100" step="0.1" placeholder="0"/><div class="desc-info" id="desc-info"></div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="f-status">
+            <option value="Em andamento">Em andamento</option>
+            <option value="Fechada">Fechada</option>
+            <option value="Cancelada">Cancelada</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row single"><div class="form-group"><label class="form-label">Observações</label><textarea class="form-textarea" id="f-obs" placeholder="Anotações sobre a venda..."></textarea></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-excluir" id="btn-excluir" onclick="excluir()" style="display:none">Excluir</button>
+      <div style="display:flex;gap:10px"><button class="btn-cancelar" onclick="fecharModal()">Cancelar</button><button class="btn-salvar" onclick="salvar()">Salvar</button></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+  const SUPABASE_URL='https://hjmnamdetxltxygyvkja.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqbW5hbWRldHhsdHh5Z3l2a2phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTExMzgsImV4cCI6MjA5Mjg4NzEzOH0.41XQTIDzjO02L-obfgaKWdJzcTpL6zxPNJfZo3hgdnQ';
+  const {createClient}=supabase; const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+  const sessao=sessionStorage.getItem('vertice_usuario'); if(!sessao) window.location.href='index.html';
+  const usuario=JSON.parse(sessao);
+  document.getElementById('user-name').textContent=usuario.nome;
+  document.getElementById('user-avatar').textContent=usuario.nome.substring(0,2).toUpperCase();
+  if(usuario.perfil!=='Administrador'){const m=document.getElementById('menu-usuarios');if(m)m.style.display='none';}
+  function sair(){if(confirm('Deseja sair?')){sessionStorage.removeItem('vertice_usuario');window.location.href='index.html';}}
+
+  let todasVendas=[]; let editandoId=null; let filtroAtivo=''; let empsData=[];
+  const badgeMap={'Fechada':'badge-green','Em andamento':'badge-amber','Cancelada':'badge-red'};
+
+  async function init(){
+    const[{data:clientes},{data:emps},{data:corretores}]=await Promise.all([
+      db.from('clientes').select('nome').order('nome'),
+      db.from('empreendimentos').select('nome,desconto_maximo'),
+      db.from('usuarios').select('nome').eq('perfil','Corretor').eq('ativo',true)
+    ]);
+    empsData=emps||[];
+    const sc=document.getElementById('f-cliente');
+    (clientes||[]).forEach(c=>sc.innerHTML+=`<option>${c.nome}</option>`);
+    const se=document.getElementById('f-emp');
+    empsData.forEach(e=>se.innerHTML+=`<option>${e.nome}</option>`);
+    const scr=document.getElementById('f-corretor');
+    (corretores||[]).forEach(c=>scr.innerHTML+=`<option>${c.nome}</option>`);
+    carregar();
+  }
+
+  async function carregar(){
+    let q=db.from('vendas').select('*').order('criado_em',{ascending:false});
+    if(filtroAtivo) q=q.eq('status',filtroAtivo);
+    const{data}=await q;
+    todasVendas=data||[]; renderTabela(todasVendas);
+  }
+
+  function setFiltro(f,btn){
+    filtroAtivo=f;
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    carregar();
+  }
+
+  function renderTabela(lista){
+    const tb=document.getElementById('tabela-vendas');
+    document.getElementById('total-vendas').textContent=`${lista.length} registro${lista.length!==1?'s':''}`;
+    if(!lista.length){tb.innerHTML=`<tr><td colspan="7" class="muted">Nenhuma venda encontrada.</td></tr>`;return;}
+    tb.innerHTML=lista.map(v=>`
+      <tr onclick="editar('${v.id}')">
+        <td style="font-weight:400">${v.cliente_nome||'—'}</td>
+        <td>${v.empreendimento_nome||'—'}</td>
+        <td>${v.unidade||'—'}</td>
+        <td>R$ ${(v.valor||0).toLocaleString('pt-BR')}</td>
+        <td>${v.desconto||0}%</td>
+        <td>${v.corretor||'—'}</td>
+        <td><span class="badge ${badgeMap[v.status]||'badge-amber'}">${v.status}</span></td>
+      </tr>`).join('');
+  }
+
+  function atualizarDesconto(){
+    const nome=document.getElementById('f-emp').value;
+    const emp=empsData.find(e=>e.nome===nome);
+    document.getElementById('desc-info').textContent=emp?`Desconto máximo permitido: ${emp.desconto_maximo}%`:'';
+  }
+
+  function abrirModal(v=null){
+    editandoId=v?.id||null;
+    document.getElementById('modal-titulo').textContent=v?'Editar Proposta':'Nova Proposta';
+    document.getElementById('f-cliente').value=v?.cliente_nome||'';
+    document.getElementById('f-emp').value=v?.empreendimento_nome||'';
+    document.getElementById('f-unidade').value=v?.unidade||'';
+    document.getElementById('f-corretor').value=v?.corretor||'';
+    document.getElementById('f-valor').value=v?.valor||'';
+    document.getElementById('f-desconto').value=v?.desconto||'';
+    document.getElementById('f-status').value=v?.status||'Em andamento';
+    document.getElementById('f-obs').value=v?.obs||'';
+    document.getElementById('btn-excluir').style.display=v?'block':'none';
+    atualizarDesconto();
+    document.getElementById('modal').classList.add('open');
+  }
+  function fecharModal(){document.getElementById('modal').classList.remove('open');editandoId=null;}
+
+  async function editar(id){
+    const v=todasVendas.find(x=>x.id===id);
+    if(v)abrirModal(v);
+  }
+
+  async function salvar(){
+    const cliente=document.getElementById('f-cliente').value;
+    const emp=document.getElementById('f-emp').value;
+    const valor=parseFloat(document.getElementById('f-valor').value);
+    if(!cliente||!emp||!valor){showToast('Preencha cliente, empreendimento e valor.',true);return;}
+    const desc=parseFloat(document.getElementById('f-desconto').value)||0;
+    const empObj=empsData.find(e=>e.nome===emp);
+    if(empObj&&desc>empObj.desconto_maximo){showToast(`Desconto máximo para este empreendimento é ${empObj.desconto_maximo}%.`,true);return;}
+    const dados={cliente_nome:cliente,empreendimento_nome:emp,unidade:document.getElementById('f-unidade').value.trim(),corretor:document.getElementById('f-corretor').value,valor,desconto:desc,status:document.getElementById('f-status').value,obs:document.getElementById('f-obs').value.trim()};
+    if(editandoId){const{error}=await db.from('vendas').update(dados).eq('id',editandoId);if(error){showToast('Erro ao atualizar.',true);return;}showToast('Proposta atualizada!');}
+    else{const{error}=await db.from('vendas').insert(dados);if(error){showToast('Erro ao cadastrar.',true);return;}showToast('Proposta cadastrada!');}
+    fecharModal();carregar();
+  }
+
+  async function excluir(){
+    if(!confirm('Excluir esta proposta?'))return;
+    const{error}=await db.from('vendas').delete().eq('id',editandoId);
+    if(error){showToast('Erro ao excluir.',true);return;}
+    showToast('Excluída.');fecharModal();carregar();
+  }
+
+  function showToast(msg,erro=false){const t=document.getElementById('toast');t.textContent=msg;t.style.color=erro?'#e05050':'var(--gold)';t.style.borderColor=erro?'rgba(224,80,80,0.4)':'var(--border-h)';t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
+  document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))fecharModal();});
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vértice Imóveis — Clientes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:       #C9973A;
+      --gold-light: #E8C070;
+      --black:      #080808;
+      --surface:    #111111;
+      --surface2:   #181818;
+      --surface3:   #141414;
+      --border:     rgba(201,151,58,0.15);
+      --border-h:   rgba(201,151,58,0.35);
+      --text:       #E8E0D0;
+      --text-muted: #7A7060;
+      --green:      #5a9a20; --green-bg: rgba(90,154,32,0.12);
+      --amber:      #e8a030; --amber-bg: rgba(232,160,48,0.12);
+      --red:        #e05050; --red-bg:   rgba(224,80,80,0.12);
+      --blue:       #4a9edd; --blue-bg:  rgba(74,158,221,0.12);
+      --sidebar-w:  200px;
+    }
+
+    html, body { height: 100%; background: var(--black); font-family: 'Jost', sans-serif; color: var(--text); }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(201,151,58,0.03) 60px),
+        repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(201,151,58,0.03) 60px);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ===== TOPBAR ===== */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 56px;
+      background: var(--surface); border-bottom: 0.5px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; z-index: 100;
+    }
+    .topbar::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .logo-area { display: flex; align-items: center; gap: 12px; }
+    .logo-name { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; letter-spacing: 4px; color: #fff; }
+    .logo-sub  { font-size: 8px; font-weight: 300; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-top: 2px; }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .user-name { font-size: 13px; color: var(--text); }
+    .user-role { font-size: 10px; font-weight: 300; letter-spacing: 1px; color: var(--text-muted); }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(201,151,58,0.15); border: 0.5px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--gold); }
+    .btn-sair { font-size: 10px; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; background: none; border: 0.5px solid var(--border); border-radius: 2px; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
+    .btn-sair:hover { color: var(--gold); border-color: var(--border-h); }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar { position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--surface); border-right: 0.5px solid var(--border); padding: 24px 0; z-index: 90; overflow-y: auto; }
+    .nav-section { font-size: 9px; font-weight: 500; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; padding: 0 20px; margin: 20px 0 8px; }
+    .nav-section:first-child { margin-top: 0; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 12px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; border-left: 2px solid transparent; text-decoration: none; }
+    .nav-item:hover { color: var(--text); background: rgba(201,151,58,0.05); }
+    .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,151,58,0.08); }
+
+    /* ===== MAIN ===== */
+    .main { margin-left: var(--sidebar-w); margin-top: 56px; padding: 28px; position: relative; z-index: 1; min-height: calc(100vh - 56px); }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .page-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #fff; letter-spacing: 2px; }
+
+    .btn-novo { background: var(--gold); color: #080808; border: none; border-radius: 2px; padding: 10px 20px; font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
+    .btn-novo:hover { background: var(--gold-light); }
+
+    /* ===== FILTROS ===== */
+    .filtros { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .search-wrap { flex: 1; min-width: 200px; position: relative; }
+    .search-wrap input { width: 100%; background: var(--surface3); border: 0.5px solid var(--border); border-radius: 2px; padding: 10px 14px 10px 36px; font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300; color: var(--text); outline: none; transition: border-color 0.2s; }
+    .search-wrap input:focus { border-color: var(--border-h); }
+    .search-wrap input::placeholder { color: var(--text-muted); }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text-muted); pointer-events: none; }
+    .filter-select { background: var(--surface3); border: 0.5px solid var(--border); border-radius: 2px; padding: 10px 14px; font-family: 'Jost', sans-serif; font-size: 12px; color: var(--text-muted); outline: none; cursor: pointer; }
+    .filter-select:focus { border-color: var(--border-h); }
+
+    /* ===== TABELA ===== */
+    .card { background: var(--surface3); border: 0.5px solid var(--border); border-radius: 4px; overflow: hidden; animation: fadeUp 0.4s ease both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 9px; font-weight: 500; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; text-align: left; padding: 14px 16px; border-bottom: 0.5px solid var(--border); background: var(--surface2); }
+    td { font-size: 12px; font-weight: 300; color: var(--text); padding: 13px 16px; border-bottom: 0.5px solid rgba(201,151,58,0.06); }
+    tr:last-child td { border-bottom: none; }
+    tbody tr { cursor: pointer; transition: background 0.15s; }
+    tbody tr:hover td { background: rgba(201,151,58,0.04); }
+
+    .badge { display: inline-block; font-size: 9px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
+    .badge-green { background: var(--green-bg); color: var(--green); }
+    .badge-amber { background: var(--amber-bg); color: var(--amber); }
+    .badge-red   { background: var(--red-bg);   color: var(--red);   }
+    .badge-blue  { background: var(--blue-bg);  color: var(--blue);  }
+
+    .table-footer { padding: 12px 16px; font-size: 11px; color: var(--text-muted); border-top: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+
+    /* ===== MODAL CADASTRO ===== */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); z-index: 200;
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface); border: 0.5px solid var(--border);
+      border-radius: 4px; width: 100%; max-width: 560px;
+      max-height: 90vh; overflow-y: auto;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px; border-bottom: 0.5px solid var(--border);
+      position: sticky; top: 0; background: var(--surface); z-index: 1;
+    }
+    .modal-title { font-size: 13px; font-weight: 500; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 4px 8px; transition: color 0.2s; }
+    .modal-close:hover { color: var(--text); }
+
+    .modal-body { padding: 24px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-row.single { grid-template-columns: 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .form-label { font-size: 9px; font-weight: 500; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; }
+    .form-input, .form-select, .form-textarea {
+      background: var(--surface2); border: 0.5px solid var(--border);
+      border-radius: 2px; padding: 10px 12px;
+      font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300;
+      color: var(--text); outline: none; transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--border-h); }
+    .form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+    .form-textarea { resize: vertical; min-height: 72px; }
+    .form-select option { background: var(--surface2); }
+
+    .form-section { font-size: 9px; font-weight: 500; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; margin: 20px 0 14px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border); }
+
+    .modal-footer { padding: 16px 24px; border-top: 0.5px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancelar { background: none; border: 0.5px solid var(--border); border-radius: 2px; padding: 10px 20px; font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 1px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+    .btn-cancelar:hover { border-color: var(--border-h); color: var(--text); }
+    .btn-salvar { background: var(--gold); border: none; border-radius: 2px; padding: 10px 24px; font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: #080808; cursor: pointer; transition: background 0.2s; }
+    .btn-salvar:hover { background: var(--gold-light); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 0.5px solid var(--gold); border-radius: 4px; padding: 14px 20px; font-size: 12px; color: var(--gold); letter-spacing: 0.5px; z-index: 300; display: none; animation: fadeUp 0.3s ease; }
+
+    @media (max-width: 900px) { .sidebar { display: none; } .main { margin-left: 0; } .form-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo-area">
+    <svg width="32" height="36" viewBox="0 0 60 68" fill="none">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8B6010"/><stop offset="45%" stop-color="#E8C070"/><stop offset="100%" stop-color="#8B6010"/></linearGradient>
+        <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E8C070"/><stop offset="100%" stop-color="#8B6010"/></linearGradient>
+      </defs>
+      <rect x="18" y="10" width="9" height="32" rx="1" fill="url(#g2)" opacity="0.85"/>
+      <rect x="31" y="2"  width="9" height="40" rx="1" fill="url(#g2)"/>
+      <polygon points="0,20 10,20 30,58 50,20 60,20 30,68" fill="url(#g1)"/>
+    </svg>
+    <div>
+      <div class="logo-name">VÉRTICE</div>
+      <div class="logo-sub">Imóveis</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div><div class="user-name" id="user-name">—</div><div class="user-role">Vértice Imóveis</div></div>
+    <div class="avatar" id="user-avatar">—</div>
+    <button class="btn-sair" onclick="sair()">Sair</button>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="nav-section">Menu</div>
+  <a class="nav-item" href="dashboard.html">▪ Dashboard</a>
+  <a class="nav-item active" href="clientes.html">▪ Clientes</a>
+  <a class="nav-item" href="empreendimentos.html">▪ Empreendimentos</a>
+  <a class="nav-item" href="vendas.html">▪ Vendas</a>
+  <div class="nav-section">Gestão</div>
+  <a class="nav-item" href="financeiro.html">▪ Financeiro</a>
+  <a class="nav-item" href="usuarios.html" id="menu-usuarios">▪ Usuários</a>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="page-header">
+    <div class="page-title">Clientes</div>
+    <button class="btn-novo" onclick="abrirModal()">+ Novo Cliente</button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros">
+    <div class="search-wrap">
+      <span class="search-icon">&#9906;</span>
+      <input type="text" id="busca" placeholder="Buscar por nome, CPF ou e-mail..." oninput="filtrar()" />
+    </div>
+    <select class="filter-select" id="filtro-status" onchange="filtrar()">
+      <option value="">Todos os status</option>
+      <option value="Ativo">Ativo</option>
+      <option value="Proposta">Proposta</option>
+      <option value="Novo">Novo</option>
+      <option value="Inativo">Inativo</option>
+    </select>
+    <select class="filter-select" id="filtro-corretor" onchange="filtrar()">
+      <option value="">Todos os corretores</option>
+      <option value="João Pedro">João Pedro</option>
+      <option value="Maria Clara">Maria Clara</option>
+    </select>
+  </div>
+
+  <!-- Tabela -->
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>CPF</th>
+          <th>Telefone</th>
+          <th>E-mail</th>
+          <th>Corretor</th>
+          <th>Interesse</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-clientes"></tbody>
+    </table>
+    <div class="table-footer">
+      <span id="total-clientes">0 clientes</span>
+      <span style="color: var(--gold); font-size:11px">Clique em um cliente para editar</span>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL CADASTRO / EDIÇÃO -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-titulo">Novo Cliente</div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="form-section">Dados pessoais</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome completo *</label>
+          <input class="form-input" id="f-nome" type="text" placeholder="Ex: Carlos Mendes" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">CPF *</label>
+          <input class="form-input" id="f-cpf" type="text" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input class="form-input" id="f-email" type="email" placeholder="email@exemplo.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telefone / WhatsApp *</label>
+          <input class="form-input" id="f-telefone" type="text" placeholder="(34) 99999-0000" maxlength="15" oninput="mascaraTelefone(this)" />
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="form-group">
+          <label class="form-label">Endereço</label>
+          <input class="form-input" id="f-endereco" type="text" placeholder="Rua, número, bairro, cidade" />
+        </div>
+      </div>
+
+      <div class="form-section">Interesse de compra</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Empreendimento de interesse</label>
+          <select class="form-select" id="f-empreendimento">
+            <option value="">Selecione...</option>
+            <option>Residencial Aurora</option>
+            <option>Parque das Flores</option>
+            <option>Edifício Vista Mar</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Corretor responsável</label>
+          <select class="form-select" id="f-corretor">
+            <option value="">Selecione...</option>
+            <option>João Pedro</option>
+            <option>Maria Clara</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="f-status">
+            <option value="Novo">Novo</option>
+            <option value="Proposta">Proposta</option>
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="form-group">
+          <label class="form-label">Observações</label>
+          <textarea class="form-textarea" id="f-obs" placeholder="Anotações sobre o cliente, preferências, etc."></textarea>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarCliente()">Salvar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Sessão ───────────────────────────────────────────────
+  const sessao = sessionStorage.getItem('vertice_usuario');
+  if (!sessao) window.location.href = 'index.html';
+  const usuario = JSON.parse(sessao);
+  document.getElementById('user-name').textContent   = usuario.perfil;
+  document.getElementById('user-avatar').textContent = usuario.perfil.substring(0,2).toUpperCase();
+  if (usuario.perfil !== 'Administrador') {
+    const m = document.getElementById('menu-usuarios');
+    if (m) m.style.display = 'none';
+  }
+
+  function sair() {
+    if (confirm('Deseja realmente sair?')) {
+      sessionStorage.removeItem('vertice_usuario');
+      window.location.href = 'index.html';
+    }
+  }
+
+  // ── Dados (localStorage para persistir no navegador) ─────
+  let clientes = JSON.parse(localStorage.getItem('vertice_clientes') || '[]');
+
+  // Dados de exemplo se estiver vazio
+  if (clientes.length === 0) {
+    clientes = [
+      { id:1, nome:'Carlos Mendes',   cpf:'012.345.678-90', telefone:'(34) 98888-1234', email:'carlos@email.com',   endereco:'Rua das Flores, 100', empreendimento:'Residencial Aurora', corretor:'João Pedro',  status:'Ativo',    obs:'' },
+      { id:2, nome:'Ana Lima',        cpf:'098.765.432-10', telefone:'(34) 97777-5678', email:'ana@email.com',      endereco:'Av. Central, 250',    empreendimento:'Parque das Flores',  corretor:'Maria Clara', status:'Proposta', obs:'Interessada no 2º andar' },
+      { id:3, nome:'Roberto Silva',   cpf:'111.222.333-44', telefone:'(34) 96666-9999', email:'roberto@email.com',  endereco:'Rua da Paz, 45',      empreendimento:'Edifício Vista Mar', corretor:'João Pedro',  status:'Ativo',    obs:'' },
+      { id:4, nome:'Fernanda Costa',  cpf:'555.666.777-88', telefone:'(34) 95555-3333', email:'fer@email.com',      endereco:'Rua Nova, 88',        empreendimento:'Parque das Flores',  corretor:'Maria Clara', status:'Inativo',  obs:'Desistiu por mudança de cidade' },
+      { id:5, nome:'Paulo Henrique',  cpf:'222.333.444-55', telefone:'(34) 94444-2222', email:'paulo@email.com',    endereco:'Av. Brasil, 500',     empreendimento:'Residencial Aurora', corretor:'João Pedro',  status:'Novo',     obs:'' },
+    ];
+    salvarStorage();
+  }
+
+  let editandoId = null;
+
+  // ── Renderiza tabela ─────────────────────────────────────
+  function renderTabela(lista) {
+    const tbody = document.getElementById('tabela-clientes');
+    const total = document.getElementById('total-clientes');
+
+    if (lista.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">Nenhum cliente encontrado.</td></tr>`;
+      total.textContent = '0 clientes';
+      return;
+    }
+
+    const badgeMap = { Ativo:'badge-green', Proposta:'badge-amber', Novo:'badge-blue', Inativo:'badge-red' };
+
+    tbody.innerHTML = lista.map(c => `
+      <tr onclick="editarCliente(${c.id})">
+        <td style="font-weight:400">${c.nome}</td>
+        <td>${c.cpf}</td>
+        <td>${c.telefone}</td>
+        <td style="color:var(--text-muted)">${c.email || '—'}</td>
+        <td>${c.corretor || '—'}</td>
+        <td style="color:var(--text-muted)">${c.empreendimento || '—'}</td>
+        <td><span class="badge ${badgeMap[c.status] || 'badge-blue'}">${c.status}</span></td>
+      </tr>
+    `).join('');
+
+    total.textContent = `${lista.length} cliente${lista.length !== 1 ? 's' : ''}`;
+  }
+
+  // ── Filtro de busca ──────────────────────────────────────
+  function filtrar() {
+    const busca    = document.getElementById('busca').value.toLowerCase();
+    const status   = document.getElementById('filtro-status').value;
+    const corretor = document.getElementById('filtro-corretor').value;
+
+    const resultado = clientes.filter(c => {
+      const textoOk   = !busca || c.nome.toLowerCase().includes(busca) || c.cpf.includes(busca) || (c.email || '').toLowerCase().includes(busca);
+      const statusOk  = !status   || c.status   === status;
+      const corretOk  = !corretor || c.corretor === corretor;
+      return textoOk && statusOk && corretOk;
+    });
+
+    renderTabela(resultado);
+  }
+
+  // ── Modal ────────────────────────────────────────────────
+  function abrirModal(cliente = null) {
+    editandoId = cliente ? cliente.id : null;
+    document.getElementById('modal-titulo').textContent = cliente ? 'Editar Cliente' : 'Novo Cliente';
+
+    document.getElementById('f-nome').value          = cliente?.nome          || '';
+    document.getElementById('f-cpf').value           = cliente?.cpf           || '';
+    document.getElementById('f-email').value         = cliente?.email         || '';
+    document.getElementById('f-telefone').value      = cliente?.telefone      || '';
+    document.getElementById('f-endereco').value      = cliente?.endereco      || '';
+    document.getElementById('f-empreendimento').value= cliente?.empreendimento|| '';
+    document.getElementById('f-corretor').value      = cliente?.corretor      || '';
+    document.getElementById('f-status').value        = cliente?.status        || 'Novo';
+    document.getElementById('f-obs').value           = cliente?.obs           || '';
+
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function fecharModal() {
+    document.getElementById('modal').classList.remove('open');
+    editandoId = null;
+  }
+
+  function editarCliente(id) {
+    const c = clientes.find(x => x.id === id);
+    if (c) abrirModal(c);
+  }
+
+  // ── Salvar ───────────────────────────────────────────────
+  function salvarCliente() {
+    const nome     = document.getElementById('f-nome').value.trim();
+    const telefone = document.getElementById('f-telefone').value.trim();
+
+    if (!nome || !telefone) {
+      mostrarToast('Preencha pelo menos o nome e o telefone.', true);
+      return;
+    }
+
+    const dados = {
+      id:              editandoId || Date.now(),
+      nome,
+      cpf:             document.getElementById('f-cpf').value.trim(),
+      email:           document.getElementById('f-email').value.trim(),
+      telefone,
+      endereco:        document.getElementById('f-endereco').value.trim(),
+      empreendimento:  document.getElementById('f-empreendimento').value,
+      corretor:        document.getElementById('f-corretor').value,
+      status:          document.getElementById('f-status').value,
+      obs:             document.getElementById('f-obs').value.trim(),
+    };
+
+    if (editandoId) {
+      const idx = clientes.findIndex(c => c.id === editandoId);
+      clientes[idx] = dados;
+      mostrarToast('Cliente atualizado com sucesso!');
+    } else {
+      clientes.push(dados);
+      mostrarToast('Cliente cadastrado com sucesso!');
+    }
+
+    salvarStorage();
+    fecharModal();
+    filtrar();
+  }
+
+  function salvarStorage() {
+    localStorage.setItem('vertice_clientes', JSON.stringify(clientes));
+  }
+
+  // ── Máscaras ─────────────────────────────────────────────
+  function mascaraCPF(input) {
+    let v = input.value.replace(/\D/g,'').substring(0,11);
+    v = v.replace(/(\d{3})(\d)/,'$1.$2');
+    v = v.replace(/(\d{3})(\d)/,'$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+    input.value = v;
+  }
+
+  function mascaraTelefone(input) {
+    let v = input.value.replace(/\D/g,'').substring(0,11);
+    if (v.length > 10) v = v.replace(/^(\d{2})(\d{5})(\d{4})$/,'($1) $2-$3');
+    else if (v.length > 6) v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/,'($1) $2-$3');
+    else if (v.length > 2) v = v.replace(/^(\d{2})(\d{0,5})$/,'($1) $2');
+    else if (v.length > 0) v = v.replace(/^(\d{0,2})$/,'($1');
+    input.value = v;
+  }
+
+  // ── Toast ────────────────────────────────────────────────
+  function mostrarToast(msg, erro = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.color       = erro ? '#e05050' : 'var(--gold)';
+    t.style.borderColor = erro ? 'rgba(224,80,80,0.4)' : 'var(--border-h)';
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3000);
+  }
+
+  // ── Fechar modal clicando fora ───────────────────────────
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) fecharModal();
+  });
+
+  // ── Init ─────────────────────────────────────────────────
+  renderTabela(clientes);
+</script>
+
+</body>
+</html>

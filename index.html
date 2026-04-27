@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vértice Imóveis — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:        #C9973A;
+      --gold-light:  #E8C070;
+      --gold-dark:   #8B6520;
+      --black:       #080808;
+      --surface:     #111111;
+      --surface2:    #181818;
+      --border:      rgba(201,151,58,0.18);
+      --border-hover:rgba(201,151,58,0.45);
+      --text:        #E8E0D0;
+      --text-muted:  #7A7060;
+    }
+
+    html, body { height: 100%; background: var(--black); font-family: 'Jost', sans-serif; color: var(--text); overflow: hidden; }
+
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(201,151,58,0.04) 60px),
+        repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(201,151,58,0.04) 60px);
+      pointer-events: none; z-index: 0;
+    }
+
+    body::after {
+      content: ''; position: fixed; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      z-index: 10;
+    }
+
+    .page { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+
+    .card {
+      width: 100%; max-width: 420px;
+      background: var(--surface); border: 0.5px solid var(--border);
+      border-radius: 4px; padding: 48px 40px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .logo-area { text-align: center; margin-bottom: 40px; }
+
+    .brand-name { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; letter-spacing: 8px; color: #fff; text-transform: uppercase; }
+
+    .brand-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px; }
+    .brand-line { height: 0.5px; width: 36px; background: var(--gold); }
+    .brand-sub { font-size: 10px; font-weight: 300; letter-spacing: 6px; color: var(--gold); text-transform: uppercase; }
+
+    .divider { height: 0.5px; background: var(--border); margin: 32px 0; }
+
+    .field-group { margin-bottom: 20px; }
+    .field-label { display: block; font-size: 10px; font-weight: 500; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; }
+
+    .field-input {
+      width: 100%; background: var(--surface2); border: 0.5px solid var(--border);
+      border-radius: 2px; padding: 13px 16px;
+      font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 300;
+      color: var(--text); outline: none; transition: border-color 0.2s;
+    }
+    .field-input::placeholder { color: var(--text-muted); }
+    .field-input:focus { border-color: var(--border-hover); }
+
+    .btn-login {
+      width: 100%; margin-top: 8px; padding: 14px;
+      background: var(--gold); border: none; border-radius: 2px;
+      font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 500;
+      letter-spacing: 3px; text-transform: uppercase; color: #080808;
+      cursor: pointer; transition: background 0.2s, transform 0.1s;
+      position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-login:hover { background: var(--gold-light); }
+    .btn-login:active { transform: scale(0.99); }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-login::after {
+      content: ''; position: absolute; top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.4s;
+    }
+    .btn-login:hover::after { left: 150%; }
+
+    .spinner {
+      display: none; width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.2); border-top-color: #080808;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      display: none; background: rgba(200,50,50,0.1); border: 0.5px solid rgba(200,50,50,0.3);
+      border-radius: 2px; padding: 10px 14px; font-size: 12px; color: #e06060;
+      margin-bottom: 16px; text-align: center; letter-spacing: 0.5px;
+    }
+
+    .forgot { text-align: center; margin-top: 20px; font-size: 11px; font-weight: 300; letter-spacing: 1px; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
+    .forgot:hover { color: var(--gold); }
+
+    .footer { text-align: center; margin-top: 32px; font-size: 10px; font-weight: 300; letter-spacing: 1px; color: rgba(201,151,58,0.25); text-transform: uppercase; }
+
+    @media (max-width: 480px) { .card { padding: 36px 24px; } }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <div class="card">
+
+    <div class="logo-area">
+      <svg display="block" style="margin:0 auto 16px" width="60" height="68" viewBox="0 0 60 68" fill="none">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#8B6010"/>
+            <stop offset="45%"  stop-color="#E8C070"/>
+            <stop offset="100%" stop-color="#8B6010"/>
+          </linearGradient>
+          <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#E8C070"/>
+            <stop offset="100%" stop-color="#8B6010"/>
+          </linearGradient>
+        </defs>
+        <rect x="18" y="10" width="9"  height="32" rx="1" fill="url(#g2)" opacity="0.85"/>
+        <rect x="31" y="2"  width="9"  height="40" rx="1" fill="url(#g2)"/>
+        <polygon points="0,20 10,20 30,58 50,20 60,20 30,68" fill="url(#g1)"/>
+      </svg>
+      <div class="brand-name">Vértice</div>
+      <div class="brand-row">
+        <div class="brand-line"></div>
+        <div class="brand-sub">Imóveis</div>
+        <div class="brand-line"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div id="error-msg" class="error-msg"></div>
+
+    <div class="field-group">
+      <label class="field-label" for="email">E-mail</label>
+      <input class="field-input" id="email" type="email" placeholder="seu@email.com.br" autocomplete="email" />
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="senha">Senha</label>
+      <input class="field-input" id="senha" type="password" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+
+    <button class="btn-login" id="btn-login" onclick="fazerLogin()">
+      <span id="btn-texto">Entrar</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+
+    <div class="forgot" onclick="esqueceuSenha()">Esqueci minha senha</div>
+
+    <div class="footer">Acesso restrito &mdash; Vértice Imóveis &copy; 2026</div>
+  </div>
+</div>
+
+<script>
+  // ── Supabase ─────────────────────────────────────────────
+  const SUPABASE_URL = 'https://hjmnamdetxltxygyvkja.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqbW5hbWRldHhsdHh5Z3l2a2phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTExMzgsImV4cCI6MjA5Mjg4NzEzOH0.41XQTIDzjO02L-obfgaKWdJzcTpL6zxPNJfZo3hgdnQ';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ── Se já logado, redireciona ─────────────────────────────
+  if (sessionStorage.getItem('vertice_usuario')) {
+    window.location.href = 'dashboard.html';
+  }
+
+  // ── Login ─────────────────────────────────────────────────
+  async function fazerLogin() {
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const senha = document.getElementById('senha').value.trim();
+    const erro  = document.getElementById('error-msg');
+    const btn   = document.getElementById('btn-login');
+    const texto = document.getElementById('btn-texto');
+    const spin  = document.getElementById('spinner');
+
+    erro.style.display = 'none';
+
+    if (!email || !senha) {
+      mostrarErro('Preencha o e-mail e a senha para continuar.');
+      return;
+    }
+
+    // Loading
+    btn.disabled = true;
+    texto.style.display = 'none';
+    spin.style.display  = 'block';
+
+    try {
+      // Busca usuário no banco pelo e-mail e senha
+      const { data, error } = await db
+        .from('usuarios')
+        .select('*')
+        .eq('email', email)
+        .eq('senha', senha)
+        .eq('ativo', true)
+        .single();
+
+      if (error || !data) {
+        mostrarErro('E-mail ou senha incorretos. Tente novamente.');
+        btn.disabled = false;
+        texto.style.display = 'block';
+        spin.style.display  = 'none';
+        return;
+      }
+
+      // Salva sessão
+      sessionStorage.setItem('vertice_usuario', JSON.stringify({
+        id:     data.id,
+        nome:   data.nome,
+        email:  data.email,
+        perfil: data.perfil
+      }));
+
+      // Redireciona para dashboard
+      window.location.href = 'dashboard.html';
+
+    } catch (err) {
+      mostrarErro('Erro de conexão. Verifique sua internet e tente novamente.');
+      btn.disabled = false;
+      texto.style.display = 'block';
+      spin.style.display  = 'none';
+    }
+  }
+
+  function mostrarErro(msg) {
+    const erro = document.getElementById('error-msg');
+    erro.textContent   = msg;
+    erro.style.display = 'block';
+  }
+
+  function esqueceuSenha() {
+    alert('Entre em contato com o administrador do sistema para redefinir sua senha.');
+  }
+
+  // Enter para logar
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') fazerLogin(); });
+</script>
+
+</body>
+</html>

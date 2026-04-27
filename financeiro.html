@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vértice Imóveis — Financeiro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--gold:#C9973A;--gold-light:#E8C070;--black:#080808;--surface:#111111;--surface2:#181818;--surface3:#141414;--border:rgba(201,151,58,0.15);--border-h:rgba(201,151,58,0.35);--text:#E8E0D0;--text-muted:#7A7060;--green:#5a9a20;--green-bg:rgba(90,154,32,0.12);--amber:#e8a030;--amber-bg:rgba(232,160,48,0.12);--red:#e05050;--red-bg:rgba(224,80,80,0.12);--sidebar-w:200px;}
+    html,body{height:100%;background:var(--black);font-family:'Jost',sans-serif;color:var(--text);}
+    body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(201,151,58,0.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(201,151,58,0.03) 60px);pointer-events:none;z-index:0;}
+    .topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--surface);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100;}
+    .topbar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+    .logo-area{display:flex;align-items:center;gap:12px;}
+    .logo-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;letter-spacing:4px;color:#fff;}
+    .logo-sub{font-size:8px;font-weight:300;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-top:2px;}
+    .topbar-right{display:flex;align-items:center;gap:16px;}
+    .user-name{font-size:13px;color:var(--text);}.user-role{font-size:10px;color:var(--text-muted);}
+    .avatar{width:34px;height:34px;border-radius:50%;background:rgba(201,151,58,0.15);border:0.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--gold);}
+    .btn-sair{font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;background:none;border:0.5px solid var(--border);border-radius:2px;padding:6px 12px;cursor:pointer;}
+    .btn-sair:hover{color:var(--gold);border-color:var(--border-h);}
+    .sidebar{position:fixed;top:56px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:0.5px solid var(--border);padding:24px 0;z-index:90;overflow-y:auto;}
+    .nav-section{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;padding:0 20px;margin:20px 0 8px;}
+    .nav-section:first-child{margin-top:0;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all 0.2s;border-left:2px solid transparent;text-decoration:none;}
+    .nav-item:hover{color:var(--text);background:rgba(201,151,58,0.05);}
+    .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,151,58,0.08);}
+    .main{margin-left:var(--sidebar-w);margin-top:56px;padding:28px;position:relative;z-index:1;}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+    .page-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:#fff;letter-spacing:2px;}
+    .filtro-periodo{display:flex;gap:8px;align-items:center;}
+    .filtro-select{background:var(--surface3);border:0.5px solid var(--border);border-radius:2px;padding:8px 14px;font-family:'Jost',sans-serif;font-size:12px;color:var(--text-muted);outline:none;cursor:pointer;}
+    .filtro-select:focus{border-color:var(--border-h);}
+    .filtro-select option{background:var(--surface2);}
+    .metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;}
+    .metric-card{background:var(--surface3);border:0.5px solid var(--border);border-radius:4px;padding:20px;}
+    .metric-label{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px;}
+    .metric-value{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:500;line-height:1;}
+    .metric-value.gold{color:var(--gold);}
+    .metric-value.white{color:#fff;}
+    .metric-value.green{color:var(--green);}
+    .metric-caption{font-size:10px;color:var(--text-muted);margin-top:6px;font-weight:300;}
+    .content-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+    .card{background:var(--surface3);border:0.5px solid var(--border);border-radius:4px;padding:20px;margin-bottom:16px;}
+    .card:last-child{margin-bottom:0;}
+    .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .card-title{font-size:10px;font-weight:500;letter-spacing:2px;color:var(--gold);text-transform:uppercase;}
+    .btn-export{background:none;border:0.5px solid var(--border);border-radius:2px;padding:6px 14px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:1px;color:var(--gold);cursor:pointer;transition:all 0.2s;}
+    .btn-export:hover{border-color:var(--border-h);background:rgba(201,151,58,0.05);}
+    table{width:100%;border-collapse:collapse;}
+    th{font-size:9px;font-weight:500;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;text-align:left;padding:0 12px 10px;border-bottom:0.5px solid var(--border);}
+    td{font-size:12px;font-weight:300;color:var(--text);padding:10px 12px;border-bottom:0.5px solid rgba(201,151,58,0.06);}
+    tr:last-child td{border-bottom:none;}
+    .badge{display:inline-block;font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:2px;}
+    .badge-green{background:var(--green-bg);color:var(--green);}
+    .badge-amber{background:var(--amber-bg);color:var(--amber);}
+    .badge-red{background:var(--red-bg);color:var(--red);}
+    .bar-wrap{height:4px;background:rgba(255,255,255,0.05);border-radius:2px;margin-top:6px;}
+    .bar{height:4px;border-radius:2px;background:var(--gold);}
+    .corretor-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid rgba(201,151,58,0.06);}
+    .corretor-row:last-child{border-bottom:none;}
+    .corr-avatar{width:30px;height:30px;border-radius:50%;background:rgba(201,151,58,0.1);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:var(--gold);flex-shrink:0;}
+    .corr-info{flex:1;}
+    .corr-name{font-size:12px;color:var(--text);}
+    .corr-sub{font-size:10px;color:var(--text-muted);margin-top:1px;}
+    .muted{color:var(--text-muted);font-size:12px;font-style:italic;padding:20px;text-align:center;}
+    @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.content-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo-area">
+    <svg width="32" height="36" viewBox="0 0 60 68" fill="none"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8B6010"/><stop offset="45%" stop-color="#E8C070"/><stop offset="100%" stop-color="#8B6010"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E8C070"/><stop offset="100%" stop-color="#8B6010"/></linearGradient></defs><rect x="18" y="10" width="9" height="32" rx="1" fill="url(#g2)" opacity="0.85"/><rect x="31" y="2" width="9" height="40" rx="1" fill="url(#g2)"/><polygon points="0,20 10,20 30,58 50,20 60,20 30,68" fill="url(#g1)"/></svg>
+    <div><div class="logo-name">VÉRTICE</div><div class="logo-sub">Imóveis</div></div>
+  </div>
+  <div class="topbar-right">
+    <div><div class="user-name" id="user-name">—</div><div class="user-role">Vértice Imóveis</div></div>
+    <div class="avatar" id="user-avatar">—</div>
+    <button class="btn-sair" onclick="sair()">Sair</button>
+  </div>
+</header>
+<nav class="sidebar">
+  <div class="nav-section">Menu</div>
+  <a class="nav-item" href="dashboard.html">▪ Dashboard</a>
+  <a class="nav-item" href="clientes.html">▪ Clientes</a>
+  <a class="nav-item" href="empreendimentos.html">▪ Empreendimentos</a>
+  <a class="nav-item" href="vendas.html">▪ Vendas</a>
+  <div class="nav-section">Gestão</div>
+  <a class="nav-item active" href="financeiro.html">▪ Financeiro</a>
+  <a class="nav-item" href="usuarios.html" id="menu-usuarios">▪ Usuários</a>
+</nav>
+
+<main class="main">
+  <div class="page-header">
+    <div class="page-title">Financeiro</div>
+    <div class="filtro-periodo">
+      <select class="filtro-select" id="filtro-ano" onchange="carregar()"></select>
+      <select class="filtro-select" id="filtro-mes" onchange="carregar()">
+        <option value="">Ano completo</option>
+        <option value="0">Janeiro</option><option value="1">Fevereiro</option>
+        <option value="2">Março</option><option value="3">Abril</option>
+        <option value="4">Maio</option><option value="5">Junho</option>
+        <option value="6">Julho</option><option value="7">Agosto</option>
+        <option value="8">Setembro</option><option value="9">Outubro</option>
+        <option value="10">Novembro</option><option value="11">Dezembro</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Métricas -->
+  <div class="metrics-grid">
+    <div class="metric-card"><div class="metric-label">Receita total</div><div class="metric-value green" id="m-receita">—</div><div class="metric-caption">Vendas fechadas</div></div>
+    <div class="metric-card"><div class="metric-label">Ticket médio</div><div class="metric-value gold" id="m-ticket">—</div><div class="metric-caption">Por venda fechada</div></div>
+    <div class="metric-card"><div class="metric-label">Total de vendas</div><div class="metric-value white" id="m-qtd">—</div><div class="metric-caption">Negócios fechados</div></div>
+    <div class="metric-card"><div class="metric-label">Desconto médio</div><div class="metric-value white" id="m-desconto">—</div><div class="metric-caption">Sobre o valor total</div></div>
+  </div>
+
+  <!-- Grid principal -->
+  <div class="content-grid">
+    <!-- Receita por empreendimento -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-header">
+        <div class="card-title">Por empreendimento</div>
+        <button class="btn-export" onclick="exportarCSV()">Exportar CSV</button>
+      </div>
+      <div id="emp-lista"><p class="muted">Carregando...</p></div>
+    </div>
+
+    <!-- Ranking corretores -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-header"><div class="card-title">Ranking corretores</div></div>
+      <div id="corr-lista"><p class="muted">Carregando...</p></div>
+    </div>
+  </div>
+
+  <!-- Tabela detalhada -->
+  <div class="card" style="margin-top:16px">
+    <div class="card-header">
+      <div class="card-title">Vendas fechadas no período</div>
+      <button class="btn-export" onclick="imprimirPagina()">Imprimir</button>
+    </div>
+    <table>
+      <thead><tr><th>Data</th><th>Cliente</th><th>Empreendimento</th><th>Unidade</th><th>Valor</th><th>Desconto</th><th>Corretor</th></tr></thead>
+      <tbody id="tabela-vendas"><tr><td colspan="7" class="muted">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+  const SUPABASE_URL='https://hjmnamdetxltxygyvkja.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqbW5hbWRldHhsdHh5Z3l2a2phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTExMzgsImV4cCI6MjA5Mjg4NzEzOH0.41XQTIDzjO02L-obfgaKWdJzcTpL6zxPNJfZo3hgdnQ';
+  const {createClient}=supabase; const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+  const sessao=sessionStorage.getItem('vertice_usuario'); if(!sessao) window.location.href='index.html';
+  const usuario=JSON.parse(sessao);
+  document.getElementById('user-name').textContent=usuario.nome;
+  document.getElementById('user-avatar').textContent=usuario.nome.substring(0,2).toUpperCase();
+  if(usuario.perfil==='Corretor') window.location.href='dashboard.html';
+  if(usuario.perfil!=='Administrador'){const m=document.getElementById('menu-usuarios');if(m)m.style.display='none';}
+  function sair(){if(confirm('Deseja sair?')){sessionStorage.removeItem('vertice_usuario');window.location.href='index.html';}}
+
+  // Preenche anos disponíveis
+  const anoAtual=new Date().getFullYear();
+  const selAno=document.getElementById('filtro-ano');
+  for(let a=anoAtual;a>=anoAtual-4;a--){
+    const opt=document.createElement('option');
+    opt.value=a; opt.textContent=a;
+    if(a===anoAtual)opt.selected=true;
+    selAno.appendChild(opt);
+  }
+  // Seleciona mês atual por padrão
+  document.getElementById('filtro-mes').value=new Date().getMonth();
+
+  let vendasData=[];
+
+  function fmt(val){
+    if(val>=1000000) return 'R$ '+(val/1000000).toFixed(2).replace('.',',')+'M';
+    if(val>=1000)    return 'R$ '+(val/1000).toFixed(1).replace('.',',')+'k';
+    return 'R$ '+val.toLocaleString('pt-BR');
+  }
+
+  async function carregar(){
+    const ano=parseInt(document.getElementById('filtro-ano').value);
+    const mesVal=document.getElementById('filtro-mes').value;
+
+    let inicio, fim;
+    if(mesVal===''){
+      inicio=new Date(ano,0,1).toISOString();
+      fim=new Date(ano+1,0,1).toISOString();
+    } else {
+      const mes=parseInt(mesVal);
+      inicio=new Date(ano,mes,1).toISOString();
+      fim=new Date(ano,mes+1,1).toISOString();
+    }
+
+    const{data}=await db.from('vendas').select('*').eq('status','Fechada').gte('criado_em',inicio).lt('criado_em',fim).order('criado_em',{ascending:false});
+    vendasData=data||[];
+
+    // Métricas
+    const total=vendasData.reduce((s,v)=>s+(v.valor||0),0);
+    const qtd=vendasData.length;
+    const ticket=qtd>0?total/qtd:0;
+    const descMedio=qtd>0?vendasData.reduce((s,v)=>s+(v.desconto||0),0)/qtd:0;
+    document.getElementById('m-receita').textContent=fmt(total);
+    document.getElementById('m-ticket').textContent=fmt(ticket);
+    document.getElementById('m-qtd').textContent=qtd;
+    document.getElementById('m-desconto').textContent=descMedio.toFixed(1)+'%';
+
+    // Por empreendimento
+    const empMap={};
+    vendasData.forEach(v=>{
+      const n=v.empreendimento_nome||'Não informado';
+      if(!empMap[n])empMap[n]={qtd:0,total:0,descTotal:0};
+      empMap[n].qtd++;empMap[n].total+=v.valor||0;empMap[n].descTotal+=v.desconto||0;
+    });
+    const empList=Object.entries(empMap).sort((a,b)=>b[1].total-a[1].total);
+    const maxEmp=empList[0]?.[1].total||1;
+    const empDiv=document.getElementById('emp-lista');
+    if(!empList.length){empDiv.innerHTML=`<p class="muted">Sem dados no período.</p>`;} 
+    else {
+      empDiv.innerHTML=empList.map(([nome,d])=>`
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;color:var(--text)">${nome}</span>
+            <span style="font-size:12px;color:var(--gold)">${fmt(d.total)}</span>
+          </div>
+          <div class="bar-wrap"><div class="bar" style="width:${Math.round((d.total/maxEmp)*100)}%"></div></div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${d.qtd} venda${d.qtd!==1?'s':''} · Desc. médio: ${(d.descTotal/d.qtd).toFixed(1)}%</div>
+        </div>`).join('');
+    }
+
+    // Ranking corretores
+    const corrMap={};
+    vendasData.forEach(v=>{
+      const n=v.corretor||'Não informado';
+      if(!corrMap[n])corrMap[n]={qtd:0,total:0};
+      corrMap[n].qtd++;corrMap[n].total+=v.valor||0;
+    });
+    const corrList=Object.entries(corrMap).sort((a,b)=>b[1].total-a[1].total);
+    const maxCorr=corrList[0]?.[1].total||1;
+    const corrDiv=document.getElementById('corr-lista');
+    if(!corrList.length){corrDiv.innerHTML=`<p class="muted">Sem dados no período.</p>`;}
+    else {
+      corrDiv.innerHTML=corrList.map(([nome,d],i)=>`
+        <div class="corretor-row">
+          <div class="corr-avatar">${nome.substring(0,2).toUpperCase()}</div>
+          <div class="corr-info">
+            <div class="corr-name">${nome}</div>
+            <div class="corr-sub">${d.qtd} venda${d.qtd!==1?'s':''}</div>
+            <div class="bar-wrap"><div class="bar" style="width:${Math.round((d.total/maxCorr)*100)}%"></div></div>
+          </div>
+          <div style="font-size:12px;color:var(--gold);white-space:nowrap">${fmt(d.total)}</div>
+        </div>`).join('');
+    }
+
+    // Tabela detalhada
+    const tb=document.getElementById('tabela-vendas');
+    if(!vendasData.length){tb.innerHTML=`<tr><td colspan="7" class="muted">Nenhuma venda fechada no período.</td></tr>`;return;}
+    tb.innerHTML=vendasData.map(v=>{
+      const d=new Date(v.criado_em);
+      const data=d.toLocaleDateString('pt-BR');
+      return `<tr>
+        <td style="color:var(--text-muted)">${data}</td>
+        <td style="font-weight:400">${v.cliente_nome||'—'}</td>
+        <td>${v.empreendimento_nome||'—'}</td>
+        <td>${v.unidade||'—'}</td>
+        <td style="color:var(--green)">R$ ${(v.valor||0).toLocaleString('pt-BR')}</td>
+        <td>${v.desconto||0}%</td>
+        <td>${v.corretor||'—'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function exportarCSV(){
+    if(!vendasData.length){alert('Nenhum dado para exportar.');return;}
+    const linhas=[['Data','Cliente','Empreendimento','Unidade','Valor','Desconto (%)','Corretor']];
+    vendasData.forEach(v=>{
+      const d=new Date(v.criado_em).toLocaleDateString('pt-BR');
+      linhas.push([d,v.cliente_nome||'',v.empreendimento_nome||'',v.unidade||'',v.valor||0,v.desconto||0,v.corretor||'']);
+    });
+    const csv=linhas.map(l=>l.join(';')).join('\n');
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='vertice-financeiro.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function imprimirPagina(){ window.print(); }
+
+  carregar();
+</script>
+</body>
+</html>
