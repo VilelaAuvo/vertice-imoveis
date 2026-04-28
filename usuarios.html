@@ -72,6 +72,26 @@
     .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:0.5px solid var(--gold);border-radius:4px;padding:14px 20px;font-size:12px;color:var(--gold);z-index:300;display:none;}
     .muted{color:var(--text-muted);font-size:12px;font-style:italic;padding:24px;text-align:center;}
     @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.form-row{grid-template-columns:1fr;}}
+
+    @media(max-width:768px){
+      .main{margin-left:0!important;padding:14px;padding-bottom:74px;}
+      .topbar{padding:0 14px;}
+      .logo-sub,.user-name,.user-role,.btn-sair{display:none;}
+      .metrics-grid{grid-template-columns:1fr 1fr;}
+      .content-grid,.emp-grid{grid-template-columns:1fr;}
+      .form-row,.form-row.triple{grid-template-columns:1fr!important;}
+      .modal{max-width:100%!important;margin:0;border-radius:0;max-height:85vh;}
+      .modal-overlay{padding:0!important;align-items:flex-end;}
+      .pag-table-wrap{overflow-x:auto;}
+      .bottom-nav{display:flex!important;}
+    }
+    .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:60px;background:var(--surface);border-top:0.5px solid var(--border);z-index:200;justify-content:space-around;align-items:center;}
+    .bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;cursor:pointer;text-decoration:none;}
+    .bn-icon{font-size:20px;opacity:0.35;}
+    .bn-icon.active{opacity:1;}
+    .bn-label{font-size:9px;color:var(--text-muted);letter-spacing:0.5px;}
+    .bn-label.active{color:var(--gold);}
+    .bn-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);margin:0 auto;}
   </style>
 </head>
 <body>
@@ -214,7 +234,15 @@
   document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))fecharModal();});
   carregar();
 </script>
-  <script src="sidebar.js"></script>
+  
+<nav class="bottom-nav">
+  <a class="bn-item" href="dashboard.html"><span class="bn-icon">🏠</span><span class="bn-label">Início</span></a>
+  <a class="bn-item" href="clientes.html"><span class="bn-icon ">👥</span><span class="bn-label ">Clientes</span></a>
+  <a class="bn-item" href="vendas.html"><span class="bn-icon ">📝</span><span class="bn-label ">Vendas</span></a>
+  <a class="bn-item" href="empreendimentos.html"><span class="bn-icon ">🏢</span><span class="bn-label ">Imóveis</span></a>
+  <a class="bn-item" href="financeiro.html"><span class="bn-icon active">💰</span><span class="bn-label active">Gestão</span><div class="bn-dot"></div></a>
+</nav>
+<script src="sidebar.js"></script>
   <script>renderSidebar('usuarios');</script>
 </body>
 </html>
