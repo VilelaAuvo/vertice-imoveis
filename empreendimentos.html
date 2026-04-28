@@ -26,7 +26,7 @@
     .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all 0.2s;border-left:2px solid transparent;text-decoration:none;}
     .nav-item:hover{color:var(--text);background:rgba(201,151,58,0.05);}
     .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,151,58,0.08);}
-    .main{margin-left:var(--sidebar-w);margin-top:56px;padding:28px;position:relative;z-index:1;}
+    .main{margin-left:220px;margin-top:56px;padding:28px;position:relative;z-index:1;}
     .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
     .page-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:#fff;letter-spacing:2px;}
     .btn-novo{background:var(--gold);color:#080808;border:none;border-radius:2px;padding:10px 20px;font-family:'Jost',sans-serif;font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;cursor:pointer;}
@@ -116,17 +116,7 @@
     <button class="btn-sair" onclick="sair()">Sair</button>
   </div>
 </header>
-<nav class="sidebar">
-  <div class="nav-section">Menu</div>
-  <a class="nav-item" href="dashboard.html">▪ Dashboard</a>
-  <a class="nav-item" href="clientes.html">▪ Clientes</a>
-  <a class="nav-item active" href="empreendimentos.html">▪ Empreendimentos</a>
-  <a class="nav-item" href="vendas.html">▪ Vendas</a>
-  <div class="nav-section">Gestão</div>
-  <a class="nav-item" href="financeiro.html">▪ Financeiro</a>
-  <a class="nav-item" href="comissoes.html" id="menu-comissoes">▪ Comissões</a>
-  <a class="nav-item" href="usuarios.html" id="menu-usuarios">▪ Usuários</a>
-</nav>
+
 
 <main class="main">
   <div class="page-header">
@@ -163,9 +153,12 @@
         </div>
       </div>
 
-      <!-- Galeria — só aparece ao editar -->
+      <!-- Galeria — aparece sempre para admins -->
       <div id="secao-fotos" style="display:none">
         <div class="form-section">Fotos do empreendimento</div>
+        <div id="aviso-novo" style="display:none;font-size:11px;color:var(--text-muted);margin-bottom:12px;padding:10px 12px;background:rgba(201,151,58,0.06);border-radius:3px;border-left:2px solid var(--gold)">
+          As fotos serão salvas assim que você clicar em <strong style="color:var(--gold)">Salvar</strong> o empreendimento.
+        </div>
         <div class="galeria-grid" id="galeria-grid"></div>
         <div class="upload-area">
           <input type="file" id="input-fotos" accept="image/*" multiple onchange="uploadFotos(this.files)"/>
@@ -218,6 +211,7 @@
 
   let editandoId=null;
   let fotos=[];
+  let fotosPendentes=[];
   let lbIndex=0;
   const statusBadge={'Em vendas':'badge-green','Lançamento':'badge-amber','Encerrado':'badge-muted'};
 
@@ -265,12 +259,15 @@
     document.getElementById('f-comissao').value=e?.comissao_percentual||'';
     document.getElementById('f-status').value=e?.status||'Em vendas';
     document.getElementById('btn-excluir').style.display=e?'block':'none';
-    const mostrarFotos=!!e&&isAdmin;
-    document.getElementById('secao-fotos').style.display=mostrarFotos?'block':'none';
-    if(mostrarFotos)carregarFotos(e.id);
+    // Mostra fotos sempre para admins
+    document.getElementById('secao-fotos').style.display=isAdmin?'block':'none';
+    document.getElementById('aviso-novo').style.display=e?'none':'block';
+    document.getElementById('galeria-grid').innerHTML='';
+    fotosPendentes=[];
+    if(e&&isAdmin)carregarFotos(e.id);
     document.getElementById('modal').classList.add('open');
   }
-  function fecharModal(){document.getElementById('modal').classList.remove('open');editandoId=null;fotos=[];}
+  function fecharModal(){document.getElementById('modal').classList.remove('open');editandoId=null;fotos=[];fotosPendentes=[];}
 
   async function editar(id){
     const{data}=await db.from('empreendimentos').select('*').eq('id',id).single();
@@ -285,12 +282,19 @@
       const{error}=await db.from('empreendimentos').update(dados).eq('id',editandoId);
       if(error){showToast('Erro ao atualizar.',true);return;}
       showToast('Empreendimento atualizado!');
+      fecharModal();carregar();
     } else {
-      const{error}=await db.from('empreendimentos').insert(dados);
+      const{data,error}=await db.from('empreendimentos').insert(dados).select().single();
       if(error){showToast('Erro ao cadastrar.',true);return;}
-      showToast('Cadastrado! Abra-o novamente para adicionar fotos.');
+      // Faz upload das fotos pendentes se houver
+      if(fotosPendentes.length>0){
+        editandoId=data.id;
+        await uploadFotos(fotosPendentes,true);
+      } else {
+        showToast('Empreendimento cadastrado!');
+      }
+      fecharModal();carregar();
     }
-    fecharModal();carregar();
   }
 
   async function excluir(){
@@ -313,15 +317,22 @@
       </div>`).join('');
   }
 
-  async function uploadFotos(files){
-    if(!files.length||!editandoId)return;
+  async function uploadFotos(files, silencioso=false){
+    if(!files.length)return;
+    // Se ainda não tem ID (novo cadastro), guarda como pendente e mostra preview
+    if(!editandoId){
+      fotosPendentes=Array.from(files);
+      renderPreviewPendente();
+      return;
+    }
     const prog=document.getElementById('upload-progress');
     const bar=document.getElementById('upload-bar');
     prog.style.display='block';
-    for(let i=0;i<files.length;i++){
-      const file=files[i];
+    const lista=Array.from(files);
+    for(let i=0;i<lista.length;i++){
+      const file=lista[i];
       if(file.size>5*1024*1024){showToast(`${file.name} muito grande (máx 5MB).`,true);continue;}
-      bar.style.width=`${Math.round((i/files.length)*100)}%`;
+      bar.style.width=`${Math.round((i/lista.length)*100)}%`;
       const ext=file.name.split('.').pop();
       const path=`${editandoId}/${Date.now()}-${i}.${ext}`;
       const{error}=await db.storage.from('empreendimentos').upload(path,file,{contentType:file.type});
@@ -332,8 +343,28 @@
     bar.style.width='100%';
     setTimeout(()=>{prog.style.display='none';bar.style.width='0%';},600);
     document.getElementById('input-fotos').value='';
-    showToast('Fotos adicionadas!');
+    fotosPendentes=[];
+    if(!silencioso)showToast('Fotos adicionadas!');
+    else showToast('Empreendimento e fotos cadastrados!');
     carregarFotos(editandoId);carregar();
+  }
+
+  function renderPreviewPendente(){
+    const grid=document.getElementById('galeria-grid');
+    if(!fotosPendentes.length){grid.innerHTML='';return;}
+    grid.innerHTML=fotosPendentes.map((f,i)=>{
+      const url=URL.createObjectURL(f);
+      return `<div class="galeria-item">
+        <img src="${url}" alt="Preview ${i+1}"/>
+        <button class="del-foto" onclick="removerPendente(${i})">✕</button>
+      </div>`;
+    }).join('');
+    document.getElementById('aviso-novo').style.display='block';
+  }
+
+  function removerPendente(i){
+    fotosPendentes.splice(i,1);
+    renderPreviewPendente();
   }
 
   async function excluirFoto(id,url){
@@ -378,5 +409,7 @@
 
   carregar();
 </script>
+  <script src="sidebar.js"></script>
+  <script>renderSidebar('empreendimentos');</script>
 </body>
 </html>
