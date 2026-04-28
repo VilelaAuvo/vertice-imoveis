@@ -93,6 +93,7 @@
   <a class="nav-item" href="vendas.html">▪ Vendas</a>
   <div class="nav-section">Gestão</div>
   <a class="nav-item" href="financeiro.html">▪ Financeiro</a>
+  <a class="nav-item" href="comissoes.html">▪ Comissões</a>
   <a class="nav-item" href="usuarios.html" id="menu-usuarios">▪ Usuários</a>
 </nav>
 <main class="main">
@@ -114,6 +115,7 @@
       <div class="form-row">
         <div class="form-group"><label class="form-label">Total de unidades</label><input class="form-input" id="f-unidades" type="number" min="0" placeholder="Ex: 48"/></div>
         <div class="form-group"><label class="form-label">Desconto máximo (%)</label><input class="form-input" id="f-desconto" type="number" min="0" max="100" step="0.1" placeholder="Ex: 8"/></div>
+        <div class="form-group"><label class="form-label">Comissão do corretor (%)</label><input class="form-input" id="f-comissao" type="number" min="0" max="100" step="0.1" placeholder="Ex: 3"/></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Status</label>
@@ -163,7 +165,7 @@
         <div class="emp-bar-wrap"><div class="emp-bar" style="width:${pct}%"></div></div>
         <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">${pct}% vendido</div>
         <div class="emp-footer">
-          <div class="emp-desc">Desc. máx: ${e.desconto_maximo}%</div>
+          <div class="emp-desc">Desc. máx: ${e.desconto_maximo}% · Comissão: ${e.comissao_percentual||0}%</div>
           <span class="badge ${statusBadge[e.status]||'badge-muted'}">${e.status}</span>
         </div>
       </div>`;
@@ -177,6 +179,7 @@
     document.getElementById('f-endereco').value=e?.endereco||'';
     document.getElementById('f-unidades').value=e?.total_unidades||'';
     document.getElementById('f-desconto').value=e?.desconto_maximo||'';
+    document.getElementById('f-comissao').value=e?.comissao_percentual||'';
     document.getElementById('f-status').value=e?.status||'Em vendas';
     document.getElementById('btn-excluir').style.display=e?'block':'none';
     document.getElementById('modal').classList.add('open');
@@ -191,7 +194,7 @@
   async function salvar(){
     const nome=document.getElementById('f-nome').value.trim();
     if(!nome){showToast('Informe o nome do empreendimento.',true);return;}
-    const dados={nome,endereco:document.getElementById('f-endereco').value.trim(),total_unidades:parseInt(document.getElementById('f-unidades').value)||0,desconto_maximo:parseFloat(document.getElementById('f-desconto').value)||0,status:document.getElementById('f-status').value};
+    const dados={nome,endereco:document.getElementById('f-endereco').value.trim(),total_unidades:parseInt(document.getElementById('f-unidades').value)||0,desconto_maximo:parseFloat(document.getElementById('f-desconto').value)||0,comissao_percentual:parseFloat(document.getElementById('f-comissao').value)||0,status:document.getElementById('f-status').value};
     if(editandoId){const{error}=await db.from('empreendimentos').update(dados).eq('id',editandoId);if(error){showToast('Erro ao atualizar.',true);return;}showToast('Empreendimento atualizado!');}
     else{const{error}=await db.from('empreendimentos').insert(dados);if(error){showToast('Erro ao cadastrar.',true);return;}showToast('Empreendimento cadastrado!');}
     fecharModal();carregar();
