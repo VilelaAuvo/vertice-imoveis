@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    :root{--gold:#C9973A;--gold-light:#E8C070;--black:#080808;--surface:#111111;--surface2:#181818;--surface3:#141414;--border:rgba(201,151,58,0.15);--border-h:rgba(201,151,58,0.35);--text:#E8E0D0;--text-muted:#7A7060;--green:#5a9a20;--green-bg:rgba(90,154,32,0.12);--amber:#e8a030;--amber-bg:rgba(232,160,48,0.12);--red:#e05050;--red-bg:rgba(224,80,80,0.12);--blue:#4a9edd;--blue-bg:rgba(74,158,221,0.12);--sidebar-w:200px;}
+    :root{--gold:#C9973A;--gold-light:#E8C070;--black:#080808;--surface:#111111;--surface2:#181818;--surface3:#141414;--border:rgba(201,151,58,0.15);--border-h:rgba(201,151,58,0.35);--text:#E8E0D0;--text-muted:#7A7060;--green:#5a9a20;--green-bg:rgba(90,154,32,0.12);--amber:#e8a030;--amber-bg:rgba(232,160,48,0.12);--red:#e05050;--red-bg:rgba(224,80,80,0.12);--sidebar-w:200px;}
     html,body{height:100%;background:var(--black);font-family:'Jost',sans-serif;color:var(--text);}
     body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(201,151,58,0.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(201,151,58,0.03) 60px);pointer-events:none;z-index:0;}
     .topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--surface);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100;}
@@ -16,7 +16,7 @@
     .logo-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;letter-spacing:4px;color:#fff;}
     .logo-sub{font-size:8px;font-weight:300;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-top:2px;}
     .topbar-right{display:flex;align-items:center;gap:16px;}
-    .user-name{font-size:13px;color:var(--text);}.user-role{font-size:10px;font-weight:300;letter-spacing:1px;color:var(--text-muted);}
+    .user-name{font-size:13px;color:var(--text);}.user-role{font-size:10px;font-weight:300;color:var(--text-muted);}
     .avatar{width:34px;height:34px;border-radius:50%;background:rgba(201,151,58,0.15);border:0.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--gold);}
     .btn-sair{font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;background:none;border:0.5px solid var(--border);border-radius:2px;padding:6px 12px;cursor:pointer;}
     .btn-sair:hover{color:var(--gold);border-color:var(--border-h);}
@@ -31,30 +31,35 @@
     .page-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:#fff;letter-spacing:2px;}
     .btn-novo{background:var(--gold);color:#080808;border:none;border-radius:2px;padding:10px 20px;font-family:'Jost',sans-serif;font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;cursor:pointer;}
     .btn-novo:hover{background:var(--gold-light);}
-    .emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
-    .emp-card{background:var(--surface3);border:0.5px solid var(--border);border-radius:4px;padding:20px;cursor:pointer;transition:border-color 0.2s;}
+    .emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+    .emp-card{background:var(--surface3);border:0.5px solid var(--border);border-radius:4px;overflow:hidden;cursor:pointer;transition:border-color 0.2s;}
     .emp-card:hover{border-color:var(--border-h);}
+    .emp-foto-capa{width:100%;height:160px;object-fit:cover;display:block;}
+    .emp-foto-placeholder{width:100%;height:160px;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;}
+    .emp-foto-placeholder span{font-size:32px;opacity:0.2;}
+    .emp-foto-placeholder p{font-size:9px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;}
+    .emp-body{padding:16px;}
     .emp-nome{font-size:15px;font-weight:500;color:#fff;margin-bottom:4px;}
-    .emp-end{font-size:11px;color:var(--text-muted);margin-bottom:16px;}
+    .emp-end{font-size:11px;color:var(--text-muted);margin-bottom:12px;}
     .emp-stat{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px;}
-    .emp-bar-wrap{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:12px;}
-    .emp-bar{height:4px;border-radius:2px;background:var(--gold);}
-    .emp-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border);}
+    .emp-bar-wrap{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:10px;}
+    .emp-bar{height:3px;border-radius:2px;background:var(--gold);}
+    .emp-footer{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:0.5px solid var(--border);}
     .emp-desc{font-size:11px;color:var(--gold);}
     .badge{display:inline-block;font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:2px;}
     .badge-green{background:var(--green-bg);color:var(--green);}
     .badge-amber{background:var(--amber-bg);color:var(--amber);}
-    .badge-red{background:var(--red-bg);color:var(--red);}
     .badge-muted{background:rgba(255,255,255,0.05);color:var(--text-muted);}
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:center;justify-content:center;padding:24px;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center;padding:24px;}
     .modal-overlay.open{display:flex;}
-    .modal{background:var(--surface);border:0.5px solid var(--border);border-radius:4px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+    .modal{background:var(--surface);border:0.5px solid var(--border);border-radius:4px;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;}
     .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1;}
     .modal-title{font-size:13px;font-weight:500;letter-spacing:2px;color:var(--gold);text-transform:uppercase;}
     .modal-close{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:4px 8px;}
     .modal-body{padding:24px;}
     .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
     .form-row.single{grid-template-columns:1fr;}
+    .form-row.triple{grid-template-columns:1fr 1fr 1fr;}
     .form-group{display:flex;flex-direction:column;gap:6px;}
     .form-label{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--gold);text-transform:uppercase;}
     .form-input,.form-select{background:var(--surface2);border:0.5px solid var(--border);border-radius:2px;padding:10px 12px;font-family:'Jost',sans-serif;font-size:13px;font-weight:300;color:var(--text);outline:none;transition:border-color 0.2s;}
@@ -68,9 +73,35 @@
     .btn-salvar:hover{background:var(--gold-light);}
     .btn-excluir{background:none;border:0.5px solid var(--red-bg);border-radius:2px;padding:10px 16px;font-family:'Jost',sans-serif;font-size:11px;color:var(--red);cursor:pointer;}
     .btn-excluir:hover{background:var(--red-bg);}
-    .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:0.5px solid var(--gold);border-radius:4px;padding:14px 20px;font-size:12px;color:var(--gold);z-index:300;display:none;}
+    /* Galeria */
+    .galeria-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:12px;}
+    .galeria-item{position:relative;border-radius:3px;overflow:hidden;aspect-ratio:4/3;background:var(--surface2);cursor:pointer;}
+    .galeria-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.2s;}
+    .galeria-item:hover img{transform:scale(1.03);}
+    .del-foto{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.75);border:none;border-radius:2px;color:#e05050;font-size:11px;padding:3px 7px;cursor:pointer;opacity:0;transition:opacity 0.2s;}
+    .galeria-item:hover .del-foto{opacity:1;}
+    .upload-area{border:0.5px dashed var(--border-h);border-radius:3px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;background:rgba(201,151,58,0.02);}
+    .upload-area:hover{background:rgba(201,151,58,0.06);}
+    .upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .upload-icon{font-size:22px;margin-bottom:6px;}
+    .upload-txt{font-size:11px;color:var(--gold);letter-spacing:1px;}
+    .upload-sub{font-size:10px;color:var(--text-muted);margin-top:3px;}
+    .upload-progress{display:none;margin-top:10px;height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;}
+    .upload-bar{height:2px;background:var(--gold);width:0%;transition:width 0.3s;}
+    /* Lightbox */
+    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:500;align-items:center;justify-content:center;}
+    .lightbox.open{display:flex;}
+    .lightbox img{max-width:90vw;max-height:88vh;object-fit:contain;border-radius:2px;}
+    .lb-close{position:absolute;top:20px;right:24px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;opacity:0.6;transition:opacity 0.2s;}
+    .lb-close:hover{opacity:1;}
+    .lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.08);border:none;border-radius:2px;color:#fff;font-size:22px;padding:14px 18px;cursor:pointer;transition:background 0.2s;}
+    .lb-nav:hover{background:rgba(255,255,255,0.15);}
+    .lb-prev{left:16px;}
+    .lb-next{right:16px;}
+    .lb-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:2px;}
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:0.5px solid var(--gold);border-radius:4px;padding:14px 20px;font-size:12px;color:var(--gold);z-index:400;display:none;}
     .muted{color:var(--text-muted);font-size:12px;font-style:italic;padding:24px;text-align:center;}
-    @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.form-row{grid-template-columns:1fr;}}
+    @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.form-row,.form-row.triple{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
@@ -96,26 +127,31 @@
   <a class="nav-item" href="comissoes.html" id="menu-comissoes">▪ Comissões</a>
   <a class="nav-item" href="usuarios.html" id="menu-usuarios">▪ Usuários</a>
 </nav>
+
 <main class="main">
   <div class="page-header">
     <div class="page-title">Empreendimentos</div>
-    <button class="btn-novo" onclick="abrirModal()">+ Novo Empreendimento</button>
+    <button class="btn-novo" id="btn-novo" onclick="abrirModal()">+ Novo Empreendimento</button>
   </div>
   <div class="emp-grid" id="emp-grid"><p class="muted">Carregando...</p></div>
 </main>
 
+<!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
-    <div class="modal-header"><div class="modal-title" id="modal-titulo">Novo Empreendimento</div><button class="modal-close" onclick="fecharModal()">✕</button></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modal-titulo">Novo Empreendimento</div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
     <div class="modal-body">
       <div class="form-section">Informações gerais</div>
-      <div class="form-row single"><div class="form-group"><label class="form-label">Nome do empreendimento *</label><input class="form-input" id="f-nome" type="text" placeholder="Ex: Residencial Aurora"/></div></div>
-      <div class="form-row single"><div class="form-group"><label class="form-label">Endereço / Localização</label><input class="form-input" id="f-endereco" type="text" placeholder="Rua, bairro, cidade — UF"/></div></div>
-      <div class="form-section">Unidades e descontos</div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Total de unidades</label><input class="form-input" id="f-unidades" type="number" min="0" placeholder="Ex: 48"/></div>
-        <div class="form-group"><label class="form-label">Desconto máximo (%)</label><input class="form-input" id="f-desconto" type="number" min="0" max="100" step="0.1" placeholder="Ex: 8"/></div>
-        <div class="form-group"><label class="form-label">Comissão do corretor (%)</label><input class="form-input" id="f-comissao" type="number" min="0" max="100" step="0.1" placeholder="Ex: 3"/></div>
+      <div class="form-row single"><div class="form-group"><label class="form-label">Nome *</label><input class="form-input" id="f-nome" type="text" placeholder="Ex: Residencial Aurora"/></div></div>
+      <div class="form-row single"><div class="form-group"><label class="form-label">Endereço</label><input class="form-input" id="f-endereco" type="text" placeholder="Rua, bairro, cidade — UF"/></div></div>
+      <div class="form-section">Unidades, desconto e comissão</div>
+      <div class="form-row triple">
+        <div class="form-group"><label class="form-label">Total unidades</label><input class="form-input" id="f-unidades" type="number" min="0" placeholder="Ex: 48"/></div>
+        <div class="form-group"><label class="form-label">Desconto máx (%)</label><input class="form-input" id="f-desconto" type="number" min="0" max="100" step="0.1" placeholder="Ex: 8"/></div>
+        <div class="form-group"><label class="form-label">Comissão (%)</label><input class="form-input" id="f-comissao" type="number" min="0" max="100" step="0.1" placeholder="Ex: 3"/></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Status</label>
@@ -126,47 +162,94 @@
           </select>
         </div>
       </div>
+
+      <!-- Galeria — só aparece ao editar -->
+      <div id="secao-fotos" style="display:none">
+        <div class="form-section">Fotos do empreendimento</div>
+        <div class="galeria-grid" id="galeria-grid"></div>
+        <div class="upload-area">
+          <input type="file" id="input-fotos" accept="image/*" multiple onchange="uploadFotos(this.files)"/>
+          <div class="upload-icon">📷</div>
+          <div class="upload-txt">Clique para adicionar fotos</div>
+          <div class="upload-sub">JPG, PNG ou WEBP — máx. 5MB por foto</div>
+          <div class="upload-progress" id="upload-progress"><div class="upload-bar" id="upload-bar"></div></div>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn-excluir" id="btn-excluir" onclick="excluir()" style="display:none">Excluir</button>
-      <div style="display:flex;gap:10px"><button class="btn-cancelar" onclick="fecharModal()">Cancelar</button><button class="btn-salvar" onclick="salvar()">Salvar</button></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-salvar" onclick="salvar()">Salvar</button>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" onclick="fecharLightbox()">✕</button>
+  <button class="lb-nav lb-prev" onclick="navLightbox(-1)">‹</button>
+  <img id="lb-img" src="" alt=""/>
+  <button class="lb-nav lb-next" onclick="navLightbox(1)">›</button>
+  <div class="lb-counter" id="lb-counter"></div>
+</div>
+
 <div class="toast" id="toast"></div>
+
 <script>
   const SUPABASE_URL='https://hjmnamdetxltxygyvkja.supabase.co';
   const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqbW5hbWRldHhsdHh5Z3l2a2phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTExMzgsImV4cCI6MjA5Mjg4NzEzOH0.41XQTIDzjO02L-obfgaKWdJzcTpL6zxPNJfZo3hgdnQ';
-  const {createClient}=supabase; const db=createClient(SUPABASE_URL,SUPABASE_KEY);
-  const sessao=sessionStorage.getItem('vertice_usuario'); if(!sessao) window.location.href='index.html';
+  const {createClient}=supabase;
+  const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  const sessao=sessionStorage.getItem('vertice_usuario');
+  if(!sessao) window.location.href='index.html';
   const usuario=JSON.parse(sessao);
   document.getElementById('user-name').textContent=usuario.nome;
   document.getElementById('user-avatar').textContent=usuario.nome.substring(0,2).toUpperCase();
-  if(usuario.perfil!=='Administrador'){const m=document.getElementById('menu-usuarios');if(m)m.style.display='none';const mc=document.getElementById('menu-comissoes');if(mc&&usuario.perfil==='Corretor')mc.style.display='none';}
+  const isAdmin=usuario.perfil==='Administrador';
+  if(!isAdmin){
+    const m=document.getElementById('menu-usuarios');if(m)m.style.display='none';
+    const mc=document.getElementById('menu-comissoes');if(mc&&usuario.perfil==='Corretor')mc.style.display='none';
+    document.getElementById('btn-novo').style.display='none';
+  }
   function sair(){if(confirm('Deseja sair?')){sessionStorage.removeItem('vertice_usuario');window.location.href='index.html';}}
 
   let editandoId=null;
+  let fotos=[];
+  let lbIndex=0;
   const statusBadge={'Em vendas':'badge-green','Lançamento':'badge-amber','Encerrado':'badge-muted'};
 
   async function carregar(){
-    const[{data:emps},{data:vendas}]=await Promise.all([
+    const [{data:emps},{data:vendas},{data:todasFotos}]=await Promise.all([
       db.from('empreendimentos').select('*').order('criado_em',{ascending:false}),
-      db.from('vendas').select('empreendimento_nome').eq('status','Fechada')
+      db.from('vendas').select('empreendimento_nome').eq('status','Fechada'),
+      db.from('empreendimento_fotos').select('empreendimento_id,url')
     ]);
+    const fotoMap={};
+    (todasFotos||[]).forEach(f=>{if(!fotoMap[f.empreendimento_id])fotoMap[f.empreendimento_id]=f.url;});
     const grid=document.getElementById('emp-grid');
     if(!emps?.length){grid.innerHTML=`<p class="muted">Nenhum empreendimento cadastrado. Clique em "+ Novo" para começar.</p>`;return;}
     grid.innerHTML=emps.map(e=>{
       const qtd=(vendas||[]).filter(v=>v.empreendimento_nome===e.nome).length;
       const pct=e.total_unidades>0?Math.min(Math.round((qtd/e.total_unidades)*100),100):0;
+      const fotoUrl=fotoMap[e.id];
+      const fotoHtml=fotoUrl
+        ?`<img class="emp-foto-capa" src="${fotoUrl}" alt="${e.nome}" onclick="event.stopPropagation();verFotos('${e.id}')" />`
+        :`<div class="emp-foto-placeholder"><span>🏢</span><p>sem fotos</p></div>`;
       return `<div class="emp-card" onclick="editar('${e.id}')">
-        <div class="emp-nome">${e.nome}</div>
-        <div class="emp-end">${e.endereco||'Endereço não informado'}</div>
-        <div class="emp-stat"><span>${qtd} vendidas</span><span>${e.total_unidades-qtd} disponíveis</span></div>
-        <div class="emp-bar-wrap"><div class="emp-bar" style="width:${pct}%"></div></div>
-        <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">${pct}% vendido</div>
-        <div class="emp-footer">
-          <div class="emp-desc">Desc. máx: ${e.desconto_maximo}% · Comissão: ${e.comissao_percentual||0}%</div>
-          <span class="badge ${statusBadge[e.status]||'badge-muted'}">${e.status}</span>
+        ${fotoHtml}
+        <div class="emp-body">
+          <div class="emp-nome">${e.nome}</div>
+          <div class="emp-end">${e.endereco||'Endereço não informado'}</div>
+          <div class="emp-stat"><span>${qtd} vendidas</span><span>${e.total_unidades-qtd} disponíveis</span></div>
+          <div class="emp-bar-wrap"><div class="emp-bar" style="width:${pct}%"></div></div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px">${pct}% vendido</div>
+          <div class="emp-footer">
+            <div class="emp-desc">Desc: ${e.desconto_maximo}% · Com: ${e.comissao_percentual||0}%</div>
+            <span class="badge ${statusBadge[e.status]||'badge-muted'}">${e.status}</span>
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -182,9 +265,12 @@
     document.getElementById('f-comissao').value=e?.comissao_percentual||'';
     document.getElementById('f-status').value=e?.status||'Em vendas';
     document.getElementById('btn-excluir').style.display=e?'block':'none';
+    const mostrarFotos=!!e&&isAdmin;
+    document.getElementById('secao-fotos').style.display=mostrarFotos?'block':'none';
+    if(mostrarFotos)carregarFotos(e.id);
     document.getElementById('modal').classList.add('open');
   }
-  function fecharModal(){document.getElementById('modal').classList.remove('open');editandoId=null;}
+  function fecharModal(){document.getElementById('modal').classList.remove('open');editandoId=null;fotos=[];}
 
   async function editar(id){
     const{data}=await db.from('empreendimentos').select('*').eq('id',id).single();
@@ -193,22 +279,103 @@
 
   async function salvar(){
     const nome=document.getElementById('f-nome').value.trim();
-    if(!nome){showToast('Informe o nome do empreendimento.',true);return;}
+    if(!nome){showToast('Informe o nome.',true);return;}
     const dados={nome,endereco:document.getElementById('f-endereco').value.trim(),total_unidades:parseInt(document.getElementById('f-unidades').value)||0,desconto_maximo:parseFloat(document.getElementById('f-desconto').value)||0,comissao_percentual:parseFloat(document.getElementById('f-comissao').value)||0,status:document.getElementById('f-status').value};
-    if(editandoId){const{error}=await db.from('empreendimentos').update(dados).eq('id',editandoId);if(error){showToast('Erro ao atualizar.',true);return;}showToast('Empreendimento atualizado!');}
-    else{const{error}=await db.from('empreendimentos').insert(dados);if(error){showToast('Erro ao cadastrar.',true);return;}showToast('Empreendimento cadastrado!');}
+    if(editandoId){
+      const{error}=await db.from('empreendimentos').update(dados).eq('id',editandoId);
+      if(error){showToast('Erro ao atualizar.',true);return;}
+      showToast('Empreendimento atualizado!');
+    } else {
+      const{error}=await db.from('empreendimentos').insert(dados);
+      if(error){showToast('Erro ao cadastrar.',true);return;}
+      showToast('Cadastrado! Abra-o novamente para adicionar fotos.');
+    }
     fecharModal();carregar();
   }
 
   async function excluir(){
-    if(!confirm('Excluir este empreendimento?'))return;
-    const{error}=await db.from('empreendimentos').delete().eq('id',editandoId);
-    if(error){showToast('Erro ao excluir.',true);return;}
+    if(!confirm('Excluir este empreendimento e todas as suas fotos?'))return;
+    await db.from('empreendimentos').delete().eq('id',editandoId);
     showToast('Excluído.');fecharModal();carregar();
   }
 
-  function showToast(msg,erro=false){const t=document.getElementById('toast');t.textContent=msg;t.style.color=erro?'#e05050':'var(--gold)';t.style.borderColor=erro?'rgba(224,80,80,0.4)':'var(--border-h)';t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
+  async function carregarFotos(empId){
+    const{data}=await db.from('empreendimento_fotos').select('*').eq('empreendimento_id',empId).order('criado_em');
+    fotos=data||[];renderGaleria();
+  }
+
+  function renderGaleria(){
+    const grid=document.getElementById('galeria-grid');
+    grid.innerHTML=fotos.map((f,i)=>`
+      <div class="galeria-item">
+        <img src="${f.url}" alt="Foto ${i+1}" onclick="abrirLightbox(${i})"/>
+        <button class="del-foto" onclick="excluirFoto('${f.id}','${f.url}')">✕</button>
+      </div>`).join('');
+  }
+
+  async function uploadFotos(files){
+    if(!files.length||!editandoId)return;
+    const prog=document.getElementById('upload-progress');
+    const bar=document.getElementById('upload-bar');
+    prog.style.display='block';
+    for(let i=0;i<files.length;i++){
+      const file=files[i];
+      if(file.size>5*1024*1024){showToast(`${file.name} muito grande (máx 5MB).`,true);continue;}
+      bar.style.width=`${Math.round((i/files.length)*100)}%`;
+      const ext=file.name.split('.').pop();
+      const path=`${editandoId}/${Date.now()}-${i}.${ext}`;
+      const{error}=await db.storage.from('empreendimentos').upload(path,file,{contentType:file.type});
+      if(error){showToast(`Erro ao enviar ${file.name}.`,true);continue;}
+      const{data:u}=db.storage.from('empreendimentos').getPublicUrl(path);
+      await db.from('empreendimento_fotos').insert({empreendimento_id:editandoId,url:u.publicUrl,nome:file.name});
+    }
+    bar.style.width='100%';
+    setTimeout(()=>{prog.style.display='none';bar.style.width='0%';},600);
+    document.getElementById('input-fotos').value='';
+    showToast('Fotos adicionadas!');
+    carregarFotos(editandoId);carregar();
+  }
+
+  async function excluirFoto(id,url){
+    if(!confirm('Excluir esta foto?'))return;
+    const path=url.split('/object/public/empreendimentos/')[1];
+    if(path)await db.storage.from('empreendimentos').remove([path]);
+    await db.from('empreendimento_fotos').delete().eq('id',id);
+    showToast('Foto excluída.');
+    carregarFotos(editandoId);carregar();
+  }
+
+  async function verFotos(empId){
+    const{data}=await db.from('empreendimento_fotos').select('*').eq('empreendimento_id',empId).order('criado_em');
+    fotos=data||[];
+    if(!fotos.length)return;
+    abrirLightbox(0);
+  }
+
+  function abrirLightbox(i){lbIndex=i;atualizarLb();document.getElementById('lightbox').classList.add('open');}
+  function fecharLightbox(){document.getElementById('lightbox').classList.remove('open');}
+  function navLightbox(d){lbIndex=(lbIndex+d+fotos.length)%fotos.length;atualizarLb();}
+  function atualizarLb(){
+    document.getElementById('lb-img').src=fotos[lbIndex].url;
+    document.getElementById('lb-counter').textContent=`${lbIndex+1} / ${fotos.length}`;
+  }
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){fecharLightbox();fecharModal();}
+    if(document.getElementById('lightbox').classList.contains('open')){
+      if(e.key==='ArrowLeft')navLightbox(-1);
+      if(e.key==='ArrowRight')navLightbox(1);
+    }
+  });
+  document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===document.getElementById('lightbox'))fecharLightbox();});
   document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))fecharModal();});
+
+  function showToast(msg,erro=false){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.style.color=erro?'#e05050':'var(--gold)';t.style.borderColor=erro?'rgba(224,80,80,0.4)':'var(--border-h)';
+    t.style.display='block';setTimeout(()=>t.style.display='none',3500);
+  }
+
   carregar();
 </script>
 </body>
