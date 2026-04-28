@@ -5,9 +5,10 @@
   <title>Vértice Imóveis — Vendas</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    :root{--gold:#C9973A;--gold-light:#E8C070;--black:#080808;--surface:#111111;--surface2:#181818;--surface3:#141414;--border:rgba(201,151,58,0.15);--border-h:rgba(201,151,58,0.35);--text:#E8E0D0;--text-muted:#7A7060;--green:#5a9a20;--green-bg:rgba(90,154,32,0.12);--amber:#e8a030;--amber-bg:rgba(232,160,48,0.12);--red:#e05050;--red-bg:rgba(224,80,80,0.12);--blue:#4a9edd;--blue-bg:rgba(74,158,221,0.12);--sidebar-w:200px;}
+    :root{--gold:#C9973A;--gold-light:#E8C070;--black:#080808;--surface:#111111;--surface2:#181818;--surface3:#141414;--border:rgba(201,151,58,0.15);--border-h:rgba(201,151,58,0.35);--text:#E8E0D0;--text-muted:#7A7060;--green:#5a9a20;--green-bg:rgba(90,154,32,0.12);--amber:#e8a030;--amber-bg:rgba(232,160,48,0.12);--red:#e05050;--red-bg:rgba(224,80,80,0.12);}
     html,body{height:100%;background:var(--black);font-family:'Jost',sans-serif;color:var(--text);}
     body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(201,151,58,0.03) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(201,151,58,0.03) 60px);pointer-events:none;z-index:0;}
     .topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--surface);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100;}
@@ -20,12 +21,6 @@
     .avatar{width:34px;height:34px;border-radius:50%;background:rgba(201,151,58,0.15);border:0.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--gold);}
     .btn-sair{font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;background:none;border:0.5px solid var(--border);border-radius:2px;padding:6px 12px;cursor:pointer;}
     .btn-sair:hover{color:var(--gold);border-color:var(--border-h);}
-    .sidebar{position:fixed;top:56px;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:0.5px solid var(--border);padding:24px 0;z-index:90;overflow-y:auto;}
-    .nav-section{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;padding:0 20px;margin:20px 0 8px;}
-    .nav-section:first-child{margin-top:0;}
-    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all 0.2s;border-left:2px solid transparent;text-decoration:none;}
-    .nav-item:hover{color:var(--text);background:rgba(201,151,58,0.05);}
-    .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,151,58,0.08);}
     .main{margin-left:220px;margin-top:56px;padding:28px;position:relative;z-index:1;}
     .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
     .page-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:#fff;letter-spacing:2px;}
@@ -46,15 +41,18 @@
     .badge-amber{background:var(--amber-bg);color:var(--amber);}
     .badge-red{background:var(--red-bg);color:var(--red);}
     .table-footer{padding:12px 16px;font-size:11px;color:var(--text-muted);border-top:0.5px solid var(--border);display:flex;justify-content:space-between;}
+    .btn-pdf{background:none;border:0.5px solid var(--border);border-radius:2px;padding:4px 10px;font-family:'Jost',sans-serif;font-size:10px;color:var(--gold);cursor:pointer;letter-spacing:1px;transition:all 0.2s;}
+    .btn-pdf:hover{border-color:var(--border-h);background:rgba(201,151,58,0.05);}
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:center;justify-content:center;padding:24px;}
     .modal-overlay.open{display:flex;}
-    .modal{background:var(--surface);border:0.5px solid var(--border);border-radius:4px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;}
+    .modal{background:var(--surface);border:0.5px solid var(--border);border-radius:4px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;}
     .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1;}
     .modal-title{font-size:13px;font-weight:500;letter-spacing:2px;color:var(--gold);text-transform:uppercase;}
     .modal-close{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:4px 8px;}
     .modal-body{padding:24px;}
     .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
     .form-row.single{grid-template-columns:1fr;}
+    .form-row.triple{grid-template-columns:1fr 1fr 1fr;}
     .form-group{display:flex;flex-direction:column;gap:6px;}
     .form-label{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--gold);text-transform:uppercase;}
     .form-input,.form-select,.form-textarea{background:var(--surface2);border:0.5px solid var(--border);border-radius:2px;padding:10px 12px;font-family:'Jost',sans-serif;font-size:13px;font-weight:300;color:var(--text);outline:none;transition:border-color 0.2s;}
@@ -70,9 +68,10 @@
     .btn-excluir{background:none;border:0.5px solid var(--red-bg);border-radius:2px;padding:10px 16px;font-family:'Jost',sans-serif;font-size:11px;color:var(--red);cursor:pointer;}
     .btn-excluir:hover{background:var(--red-bg);}
     .desc-info{font-size:11px;color:var(--gold);margin-top:4px;}
+    .valor-liquido{font-size:11px;color:var(--green);margin-top:4px;}
     .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:0.5px solid var(--gold);border-radius:4px;padding:14px 20px;font-size:12px;color:var(--gold);z-index:300;display:none;}
     .muted{color:var(--text-muted);font-size:12px;font-style:italic;padding:24px;text-align:center;}
-    @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.form-row{grid-template-columns:1fr;}}
+    @media(max-width:900px){.main{margin-left:0;}.form-row,.form-row.triple{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
@@ -101,18 +100,19 @@
   </div>
   <div class="card">
     <table>
-      <thead><tr><th>Cliente</th><th>Empreendimento</th><th>Unidade</th><th>Valor</th><th>Desconto</th><th>Corretor</th><th>Status</th></tr></thead>
-      <tbody id="tabela-vendas"><tr><td colspan="7" class="muted">Carregando...</td></tr></tbody>
+      <thead><tr><th>Cliente</th><th>Empreendimento</th><th>Unidade</th><th>Valor</th><th>Desconto</th><th>Corretor</th><th>Status</th><th>PDF</th></tr></thead>
+      <tbody id="tabela-vendas"><tr><td colspan="8" class="muted">Carregando...</td></tr></tbody>
     </table>
-    <div class="table-footer"><span id="total-vendas">—</span><span style="color:var(--gold);font-size:11px">Clique para editar</span></div>
+    <div class="table-footer"><span id="total-vendas">—</span><span style="color:var(--gold);font-size:11px">Clique na linha para editar · PDF para baixar proposta</span></div>
   </div>
 </main>
 
+<!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <div class="modal-header"><div class="modal-title" id="modal-titulo">Nova Proposta</div><button class="modal-close" onclick="fecharModal()">✕</button></div>
     <div class="modal-body">
-      <div class="form-section">Dados da venda</div>
+      <div class="form-section">Dados da proposta</div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Cliente *</label><select class="form-select" id="f-cliente"><option value="">Selecione...</option></select></div>
         <div class="form-group"><label class="form-label">Empreendimento *</label><select class="form-select" id="f-emp" onchange="atualizarDesconto()"><option value="">Selecione...</option></select></div>
@@ -123,10 +123,19 @@
       </div>
       <div class="form-section">Valores</div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Valor total (R$) *</label><input class="form-input" id="f-valor" type="number" min="0" placeholder="Ex: 380000"/></div>
-        <div class="form-group"><label class="form-label">Desconto aplicado (%)</label><input class="form-input" id="f-desconto" type="number" min="0" max="100" step="0.1" placeholder="0"/><div class="desc-info" id="desc-info"></div></div>
+        <div class="form-group">
+          <label class="form-label">Valor total (R$) *</label>
+          <input class="form-input" id="f-valor" type="number" min="0" placeholder="Ex: 380000" oninput="calcularLiquido()"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Desconto aplicado (%)</label>
+          <input class="form-input" id="f-desconto" type="number" min="0" max="100" step="0.1" placeholder="0" oninput="calcularLiquido()"/>
+          <div class="desc-info" id="desc-info"></div>
+          <div class="valor-liquido" id="valor-liquido"></div>
+        </div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label class="form-label">Validade da proposta (dias)</label><input class="form-input" id="f-validade" type="number" min="1" placeholder="Ex: 15" value="15"/></div>
         <div class="form-group"><label class="form-label">Status</label>
           <select class="form-select" id="f-status">
             <option value="Em andamento">Em andamento</option>
@@ -135,24 +144,31 @@
           </select>
         </div>
       </div>
-      <div class="form-row single"><div class="form-group"><label class="form-label">Observações</label><textarea class="form-textarea" id="f-obs" placeholder="Anotações sobre a venda..."></textarea></div></div>
+      <div class="form-row single"><div class="form-group"><label class="form-label">Observações</label><textarea class="form-textarea" id="f-obs" placeholder="Anotações sobre a proposta..."></textarea></div></div>
     </div>
     <div class="modal-footer">
       <button class="btn-excluir" id="btn-excluir" onclick="excluir()" style="display:none">Excluir</button>
-      <div style="display:flex;gap:10px"><button class="btn-cancelar" onclick="fecharModal()">Cancelar</button><button class="btn-salvar" onclick="salvar()">Salvar</button></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-salvar" id="btn-salvar" onclick="salvar()">Salvar</button>
+      </div>
     </div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
+
 <script>
   const SUPABASE_URL='https://hjmnamdetxltxygyvkja.supabase.co';
   const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqbW5hbWRldHhsdHh5Z3l2a2phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTExMzgsImV4cCI6MjA5Mjg4NzEzOH0.41XQTIDzjO02L-obfgaKWdJzcTpL6zxPNJfZo3hgdnQ';
-  const {createClient}=supabase; const db=createClient(SUPABASE_URL,SUPABASE_KEY);
-  const sessao=sessionStorage.getItem('vertice_usuario'); if(!sessao) window.location.href='index.html';
+  const {createClient}=supabase;
+  const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  const sessao=sessionStorage.getItem('vertice_usuario');
+  if(!sessao) window.location.href='index.html';
   const usuario=JSON.parse(sessao);
   document.getElementById('user-name').textContent=usuario.nome;
   document.getElementById('user-avatar').textContent=usuario.nome.substring(0,2).toUpperCase();
-  if(usuario.perfil!=='Administrador'){const m=document.getElementById('menu-usuarios');if(m)m.style.display='none';const mc=document.getElementById('menu-comissoes');if(mc&&usuario.perfil==='Corretor')mc.style.display='none';}
   function sair(){if(confirm('Deseja sair?')){sessionStorage.removeItem('vertice_usuario');window.location.href='index.html';}}
 
   let todasVendas=[]; let editandoId=null; let filtroAtivo=''; let empsData=[];
@@ -160,13 +176,13 @@
 
   async function init(){
     const[{data:clientes},{data:emps},{data:corretores}]=await Promise.all([
-      db.from('clientes').select('nome').order('nome'),
-      db.from('empreendimentos').select('nome,desconto_maximo'),
+      db.from('clientes').select('nome,telefone,cpf').order('nome'),
+      db.from('empreendimentos').select('nome,desconto_maximo,endereco'),
       db.from('usuarios').select('nome').eq('perfil','Corretor').eq('ativo',true)
     ]);
     empsData=emps||[];
     const sc=document.getElementById('f-cliente');
-    (clientes||[]).forEach(c=>sc.innerHTML+=`<option>${c.nome}</option>`);
+    (clientes||[]).forEach(c=>sc.innerHTML+=`<option value="${c.nome}" data-cpf="${c.cpf||''}" data-tel="${c.telefone||''}">${c.nome}</option>`);
     const se=document.getElementById('f-emp');
     empsData.forEach(e=>se.innerHTML+=`<option>${e.nome}</option>`);
     const scr=document.getElementById('f-corretor');
@@ -178,7 +194,8 @@
     let q=db.from('vendas').select('*').order('criado_em',{ascending:false});
     if(filtroAtivo) q=q.eq('status',filtroAtivo);
     const{data}=await q;
-    todasVendas=data||[]; renderTabela(todasVendas);
+    todasVendas=data||[];
+    renderTabela(todasVendas);
   }
 
   function setFiltro(f,btn){
@@ -191,23 +208,34 @@
   function renderTabela(lista){
     const tb=document.getElementById('tabela-vendas');
     document.getElementById('total-vendas').textContent=`${lista.length} registro${lista.length!==1?'s':''}`;
-    if(!lista.length){tb.innerHTML=`<tr><td colspan="7" class="muted">Nenhuma venda encontrada.</td></tr>`;return;}
+    if(!lista.length){tb.innerHTML=`<tr><td colspan="8" class="muted">Nenhuma proposta encontrada.</td></tr>`;return;}
     tb.innerHTML=lista.map(v=>`
-      <tr onclick="editar('${v.id}')">
-        <td style="font-weight:400">${v.cliente_nome||'—'}</td>
-        <td>${v.empreendimento_nome||'—'}</td>
-        <td>${v.unidade||'—'}</td>
-        <td>R$ ${(v.valor||0).toLocaleString('pt-BR')}</td>
-        <td>${v.desconto||0}%</td>
-        <td>${v.corretor||'—'}</td>
-        <td><span class="badge ${badgeMap[v.status]||'badge-amber'}">${v.status}</span></td>
+      <tr>
+        <td onclick="editar('${v.id}')" style="font-weight:400">${v.cliente_nome||'—'}</td>
+        <td onclick="editar('${v.id}')">${v.empreendimento_nome||'—'}</td>
+        <td onclick="editar('${v.id}')">${v.unidade||'—'}</td>
+        <td onclick="editar('${v.id}')">R$ ${(v.valor||0).toLocaleString('pt-BR')}</td>
+        <td onclick="editar('${v.id}')">${v.desconto||0}%</td>
+        <td onclick="editar('${v.id}')">${v.corretor||'—'}</td>
+        <td onclick="editar('${v.id}')"><span class="badge ${badgeMap[v.status]||'badge-amber'}">${v.status}</span></td>
+        <td><button class="btn-pdf" onclick="gerarPDF('${v.id}')">⬇ PDF</button></td>
       </tr>`).join('');
   }
 
   function atualizarDesconto(){
     const nome=document.getElementById('f-emp').value;
     const emp=empsData.find(e=>e.nome===nome);
-    document.getElementById('desc-info').textContent=emp?`Desconto máximo permitido: ${emp.desconto_maximo}%`:'';
+    document.getElementById('desc-info').textContent=emp?`Desconto máximo: ${emp.desconto_maximo}%`:'';
+    calcularLiquido();
+  }
+
+  function calcularLiquido(){
+    const valor=parseFloat(document.getElementById('f-valor').value)||0;
+    const desc=parseFloat(document.getElementById('f-desconto').value)||0;
+    const liq=valor-(valor*(desc/100));
+    const el=document.getElementById('valor-liquido');
+    if(valor>0&&desc>0) el.textContent=`Valor com desconto: R$ ${liq.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    else el.textContent='';
   }
 
   function abrirModal(v=null){
@@ -219,6 +247,7 @@
     document.getElementById('f-corretor').value=v?.corretor||'';
     document.getElementById('f-valor').value=v?.valor||'';
     document.getElementById('f-desconto').value=v?.desconto||'';
+    document.getElementById('f-validade').value=v?.validade_dias||15;
     document.getElementById('f-status').value=v?.status||'Em andamento';
     document.getElementById('f-obs').value=v?.obs||'';
     document.getElementById('btn-excluir').style.display=v?'block':'none';
@@ -226,11 +255,7 @@
     document.getElementById('modal').classList.add('open');
   }
   function fecharModal(){document.getElementById('modal').classList.remove('open');editandoId=null;}
-
-  async function editar(id){
-    const v=todasVendas.find(x=>x.id===id);
-    if(v)abrirModal(v);
-  }
+  function editar(id){const v=todasVendas.find(x=>x.id===id);if(v)abrirModal(v);}
 
   async function salvar(){
     const cliente=document.getElementById('f-cliente').value;
@@ -240,10 +265,31 @@
     const desc=parseFloat(document.getElementById('f-desconto').value)||0;
     const empObj=empsData.find(e=>e.nome===emp);
     if(empObj&&desc>empObj.desconto_maximo){showToast(`Desconto máximo para este empreendimento é ${empObj.desconto_maximo}%.`,true);return;}
-    const dados={cliente_nome:cliente,empreendimento_nome:emp,unidade:document.getElementById('f-unidade').value.trim(),corretor:document.getElementById('f-corretor').value,valor,desconto:desc,status:document.getElementById('f-status').value,obs:document.getElementById('f-obs').value.trim()};
-    if(editandoId){const{error}=await db.from('vendas').update(dados).eq('id',editandoId);if(error){showToast('Erro ao atualizar.',true);return;}showToast('Proposta atualizada!');}
-    else{const{error}=await db.from('vendas').insert(dados);if(error){showToast('Erro ao cadastrar.',true);return;}showToast('Proposta cadastrada!');}
-    fecharModal();carregar();
+    const dados={
+      cliente_nome:cliente,
+      empreendimento_nome:emp,
+      unidade:document.getElementById('f-unidade').value.trim(),
+      corretor:document.getElementById('f-corretor').value,
+      valor,desconto:desc,
+      validade_dias:parseInt(document.getElementById('f-validade').value)||15,
+      status:document.getElementById('f-status').value,
+      obs:document.getElementById('f-obs').value.trim()
+    };
+    let savedId=editandoId;
+    if(editandoId){
+      const{error}=await db.from('vendas').update(dados).eq('id',editandoId);
+      if(error){showToast('Erro ao atualizar.',true);return;}
+      showToast('Proposta atualizada!');
+    } else {
+      const{data,error}=await db.from('vendas').insert(dados).select().single();
+      if(error){showToast('Erro ao cadastrar.',true);return;}
+      savedId=data.id;
+      showToast('Proposta cadastrada!');
+    }
+    fecharModal();
+    await carregar();
+    // Pergunta se quer gerar PDF
+    if(confirm('Proposta salva! Deseja baixar o PDF agora?')) gerarPDF(savedId);
   }
 
   async function excluir(){
@@ -253,11 +299,265 @@
     showToast('Excluída.');fecharModal();carregar();
   }
 
-  function showToast(msg,erro=false){const t=document.getElementById('toast');t.textContent=msg;t.style.color=erro?'#e05050':'var(--gold)';t.style.borderColor=erro?'rgba(224,80,80,0.4)':'var(--border-h)';t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
+  // ── GERAÇÃO DE PDF ──────────────────────────────────────
+  async function gerarPDF(id){
+    const venda=todasVendas.find(v=>v.id===id);
+    if(!venda){showToast('Proposta não encontrada.',true);return;}
+
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const W=210; const H=297;
+
+    // ── Cores ──
+    const ouro=[201,151,58];
+    const preto=[8,8,8];
+    const cinzaClaro=[240,237,230];
+    const cinzaTexto=[100,96,80];
+
+    // ── Fundo ──
+    doc.setFillColor(...preto);
+    doc.rect(0,0,W,H,'F');
+
+    // ── Marca d'água ──
+    doc.setTextColor(30,28,20);
+    doc.setFontSize(72);
+    doc.setFont('helvetica','bold');
+    doc.saveGraphicsState();
+    // Rotaciona e centraliza
+    doc.text('VÉRTICE',W/2,H/2+20,{align:'center',angle:45});
+    doc.restoreGraphicsState();
+
+    // ── Linha dourada topo ──
+    doc.setDrawColor(...ouro);
+    doc.setLineWidth(0.8);
+    doc.line(15,14,W-15,14);
+
+    // ── Logo V ──
+    doc.setFillColor(...ouro);
+    doc.setFontSize(28);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(...ouro);
+    doc.text('V',18,30);
+
+    // ── Nome empresa ──
+    doc.setFontSize(18);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(255,255,255);
+    doc.text('VÉRTICE',30,26);
+    doc.setFontSize(7);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(...ouro);
+    doc.text('I M Ó V E I S',30.5,31);
+
+    // ── Linha dourada logo ──
+    doc.setDrawColor(...ouro);
+    doc.setLineWidth(0.3);
+    doc.line(30,33,85,33);
+
+    // ── Título do documento ──
+    doc.setFontSize(11);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(...ouro);
+    doc.text('PROPOSTA COMERCIAL',W/2,26,{align:'center'});
+    doc.setFontSize(8);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(...cinzaTexto);
+    const dataDoc=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+    doc.text(dataDoc,W/2,32,{align:'center'});
+
+    // ── Número da proposta ──
+    doc.setFontSize(7);
+    doc.setTextColor(...cinzaTexto);
+    doc.text(`Nº ${id.substring(0,8).toUpperCase()}`,W-15,26,{align:'right'});
+
+    // ── Linha separadora ──
+    doc.setDrawColor(...ouro);
+    doc.setLineWidth(0.3);
+    doc.line(15,38,W-15,38);
+
+    // ── Seção: DADOS DO CLIENTE ──
+    let y=48;
+    doc.setFillColor(20,18,10);
+    doc.rect(15,y-5,W-30,8,'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(...ouro);
+    doc.text('DADOS DO CLIENTE',18,y);
+    y+=10;
+
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...cinzaClaro);
+    doc.text(`Cliente:`,18,y);
+    doc.setFont('helvetica','bold');
+    doc.text(venda.cliente_nome||'—',50,y);
+    y+=7;
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(...cinzaTexto);
+    doc.text(`Corretor responsável:`,18,y);
+    doc.setTextColor(...cinzaClaro);
+    doc.text(venda.corretor||'—',70,y);
+
+    // ── Seção: DADOS DO IMÓVEL ──
+    y+=14;
+    doc.setFillColor(20,18,10);
+    doc.rect(15,y-5,W-30,8,'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(...ouro);
+    doc.text('DADOS DO IMÓVEL',18,y);
+    y+=10;
+
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...cinzaTexto);
+    doc.text('Empreendimento:',18,y);
+    doc.setTextColor(...cinzaClaro);
+    doc.setFont('helvetica','bold');
+    doc.text(venda.empreendimento_nome||'—',65,y);
+    y+=7;
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(...cinzaTexto);
+    doc.text('Unidade:',18,y);
+    doc.setTextColor(...cinzaClaro);
+    doc.text(venda.unidade||'—',50,y);
+
+    const empInfo=empsData.find(e=>e.nome===venda.empreendimento_nome);
+    if(empInfo?.endereco){
+      y+=7;
+      doc.setTextColor(...cinzaTexto);
+      doc.text('Localização:',18,y);
+      doc.setTextColor(...cinzaClaro);
+      doc.text(empInfo.endereco,50,y);
+    }
+
+    // ── Seção: VALORES ──
+    y+=14;
+    doc.setFillColor(20,18,10);
+    doc.rect(15,y-5,W-30,8,'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(...ouro);
+    doc.text('CONDIÇÕES COMERCIAIS',18,y);
+    y+=12;
+
+    const valorBruto=venda.valor||0;
+    const desc=venda.desconto||0;
+    const valorDesc=valorBruto*(desc/100);
+    const valorLiq=valorBruto-valorDesc;
+
+    // Tabela de valores
+    doc.setFillColor(15,14,8);
+    doc.rect(15,y-5,W-30,42,'F');
+    doc.setDrawColor(...ouro);
+    doc.setLineWidth(0.2);
+    doc.rect(15,y-5,W-30,42);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(...cinzaTexto);
+    doc.text('Valor do imóvel:',20,y+2);
+    doc.setTextColor(...cinzaClaro);
+    doc.text(`R$ ${valorBruto.toLocaleString('pt-BR',{minimumFractionDigits:2})}`,W-20,y+2,{align:'right'});
+
+    y+=9;
+    doc.setTextColor(...cinzaTexto);
+    doc.text(`Desconto exclusivo (${desc}%):`,20,y+2);
+    doc.setTextColor('#e05050');
+    doc.text(`- R$ ${valorDesc.toLocaleString('pt-BR',{minimumFractionDigits:2})}`,W-20,y+2,{align:'right'});
+
+    // Linha divisória
+    y+=7;
+    doc.setDrawColor(...ouro);
+    doc.setLineWidth(0.2);
+    doc.line(20,y,W-20,y);
+    y+=7;
+
+    // Valor final — destaque
+    doc.setFontSize(11);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(...ouro);
+    doc.text('VALOR FINAL COM DESCONTO:',20,y+2);
+    doc.setFontSize(12);
+    doc.text(`R$ ${valorLiq.toLocaleString('pt-BR',{minimumFractionDigits:2})}`,W-20,y+2,{align:'right'});
+
+    // ── Validade ──
+    y+=18;
+    const diasVal=venda.validade_dias||15;
+    const dataVal=new Date();
+    dataVal.setDate(dataVal.getDate()+diasVal);
+    const dataValStr=dataVal.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+    doc.setFillColor(30,25,5);
+    doc.setDrawColor(201,151,58);
+    doc.setLineWidth(0.3);
+    doc.rect(15,y-4,W-30,12,'FD');
+    doc.setFontSize(8);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(...ouro);
+    doc.text(`⏱  Esta proposta é válida por ${diasVal} dias — até ${dataValStr}`,W/2,y+3,{align:'center'});
+
+    // ── Observações ──
+    if(venda.obs){
+      y+=18;
+      doc.setFontSize(8);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(...ouro);
+      doc.text('OBSERVAÇÕES',18,y);
+      y+=6;
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(...cinzaTexto);
+      doc.setFontSize(8);
+      const linhas=doc.splitTextToSize(venda.obs,W-36);
+      doc.text(linhas,18,y);
+      y+=linhas.length*5;
+    }
+
+    // ── Assinaturas ──
+    y=Math.max(y+20,210);
+    doc.setDrawColor(...ouro);
+    doc.setLineWidth(0.2);
+
+    // Linha cliente
+    doc.line(20,y,95,y);
+    doc.setFontSize(8);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(...cinzaTexto);
+    doc.text('Assinatura do Cliente',20,y+5);
+    doc.setFontSize(7);
+    doc.text(venda.cliente_nome||'',20,y+10);
+
+    // Linha corretor
+    doc.line(115,y,W-20,y);
+    doc.text('Assinatura do Corretor',115,y+5);
+    doc.setFontSize(7);
+    doc.text(venda.corretor||'',115,y+10);
+
+    // ── Rodapé ──
+    doc.setDrawColor(...ouro);
+    doc.setLineWidth(0.5);
+    doc.line(15,H-18,W-15,H-18);
+    doc.setFontSize(7);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(...cinzaTexto);
+    doc.text('Vértice Imóveis — Documento gerado em '+new Date().toLocaleString('pt-BR'),W/2,H-12,{align:'center'});
+    doc.text('Este documento não substitui o contrato de compra e venda.',W/2,H-7,{align:'center'});
+
+    // ── Salva ──
+    const nomeArq=`proposta-vertice-${(venda.cliente_nome||'cliente').replace(/\s/g,'-').toLowerCase()}.pdf`;
+    doc.save(nomeArq);
+    showToast('PDF gerado com sucesso!');
+  }
+
+  function showToast(msg,erro=false){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.style.color=erro?'#e05050':'var(--gold)';t.style.borderColor=erro?'rgba(224,80,80,0.4)':'var(--border-h)';
+    t.style.display='block';setTimeout(()=>t.style.display='none',3500);
+  }
   document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))fecharModal();});
   init();
 </script>
-  <script src="sidebar.js"></script>
-  <script>renderSidebar('vendas');</script>
+<script src="sidebar.js"></script>
+<script>renderSidebar('vendas');</script>
 </body>
 </html>
