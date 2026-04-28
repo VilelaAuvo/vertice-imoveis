@@ -156,7 +156,7 @@
   document.getElementById('user-name').textContent=usuario.nome;
   document.getElementById('user-avatar').textContent=usuario.nome.substring(0,2).toUpperCase();
   if(usuario.perfil==='Corretor') window.location.href='dashboard.html';
-  if(usuario.perfil!=='Administrador'){const m=document.getElementById('menu-usuarios');if(m)m.style.display='none';}
+  if(usuario.perfil!=='Administrador'){const m=document.getElementById('menu-usuarios');if(m)m.style.display='none';const mc=document.getElementById('menu-comissoes');if(mc&&usuario.perfil==='Corretor')mc.style.display='none';}
   function sair(){if(confirm('Deseja sair?')){sessionStorage.removeItem('vertice_usuario');window.location.href='index.html';}}
 
   // Preenche anos disponíveis

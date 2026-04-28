@@ -93,7 +93,7 @@
   <a class="nav-item" href="vendas.html">▪ Vendas</a>
   <div class="nav-section">Gestão</div>
   <a class="nav-item" href="financeiro.html">▪ Financeiro</a>
-  <a class="nav-item" href="comissoes.html">▪ Comissões</a>
+  <a class="nav-item" href="comissoes.html" id="menu-comissoes">▪ Comissões</a>
   <a class="nav-item" href="usuarios.html" id="menu-usuarios">▪ Usuários</a>
 </nav>
 <main class="main">
@@ -142,7 +142,7 @@
   const usuario=JSON.parse(sessao);
   document.getElementById('user-name').textContent=usuario.nome;
   document.getElementById('user-avatar').textContent=usuario.nome.substring(0,2).toUpperCase();
-  if(usuario.perfil!=='Administrador'){const m=document.getElementById('menu-usuarios');if(m)m.style.display='none';}
+  if(usuario.perfil!=='Administrador'){const m=document.getElementById('menu-usuarios');if(m)m.style.display='none';const mc=document.getElementById('menu-comissoes');if(mc&&usuario.perfil==='Corretor')mc.style.display='none';}
   function sair(){if(confirm('Deseja sair?')){sessionStorage.removeItem('vertice_usuario');window.location.href='index.html';}}
 
   let editandoId=null;
